@@ -5,6 +5,7 @@ import { LandingPage } from "@/pages/landing/LandingPage"
 import { DashboardLayout } from "@/pages/dashboard/DashboardLayout"
 import { DashboardAccessGate } from "@/pages/dashboard/DashboardAccessGate"
 import { DashboardHomePage } from "@/pages/dashboard/DashboardHomePage"
+import { IntegrationsPage } from "@/pages/dashboard/IntegrationsPage"
 import { CallsPage } from "@/pages/calls/CallsPage"
 import { VocPage } from "@/pages/voc/VocPage"
 import { KnowledgePage } from "@/pages/knowledge/KnowledgePage"
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
             element: <DashboardLayout />,
             children: [
               { index: true, element: <DashboardHomePage /> },
+              { path: "integrations", element: <IntegrationsPage /> },
               { path: "calls", element: <CallsPage /> },
               { path: "voc", element: <VocPage /> },
               { path: "knowledge", element: <KnowledgePage /> },

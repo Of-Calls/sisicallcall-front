@@ -1,5 +1,6 @@
 import { motion } from "framer-motion"
 import { Phone } from "lucide-react"
+import { Link } from "react-router-dom"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -134,10 +135,15 @@ export function CallList({
     >
       <Card className="transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-base font-semibold">후속 조치 필요 콜 리스트</CardTitle>
+          <CardTitle className="text-base font-semibold">최근 조치 필요 콜 리스트</CardTitle>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button variant="outline" size="sm" className="transition-all duration-200 hover:shadow-sm">
-              전체 보기
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="transition-all duration-200 hover:shadow-sm"
+            >
+              <Link to="/dashboard/calls">전체 보기</Link>
             </Button>
           </motion.div>
         </CardHeader>
@@ -226,10 +232,12 @@ export function CallList({
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button
                         size="sm"
-                        className="gap-1 transition-all duration-200 hover:shadow-md hover:shadow-primary/20"
+                        variant="outline"
+                        disabled
+                        className="gap-1 transition-all duration-200"
                       >
                         <Phone className="h-3 w-3" />
-                        연결
+                        연결 준비 중
                       </Button>
                     </motion.div>
                   </TableCell>

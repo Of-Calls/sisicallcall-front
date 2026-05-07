@@ -1,7 +1,8 @@
 import { useCallback, useState } from "react"
 import type { ChangeEvent, DragEvent } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
 import { FileText, FileUp, Loader2, X } from "lucide-react"
+import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -170,10 +171,23 @@ export function PdfUpload() {
     >
       <Card className="transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">PDF 매뉴얼 업로드</CardTitle>
-          <CardDescription>
-            AI 에이전트가 학습할 고객 응대 매뉴얼을 업로드하세요
-          </CardDescription>
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <CardTitle className="text-base font-semibold">PDF 매뉴얼 업로드</CardTitle>
+              <CardDescription>
+                AI 에이전트가 참고할 고객용 매뉴얼을 업로드합니다.
+                실제 문서 목록과 청크 관리는 지식 업로드 화면에서 확인할 수 있습니다.
+              </CardDescription>
+            </div>
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className="shrink-0 text-teal-700 hover:bg-teal-50 hover:text-teal-800"
+            >
+              <Link to="/dashboard/knowledge">지식 업로드 관리</Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <motion.div
@@ -213,7 +227,7 @@ export function PdfUpload() {
                 : "PDF 파일을 드래그해서 올려주세요"}
             </p>
             <p className="mb-4 text-xs text-muted-foreground">
-              또는 클릭하여 파일을 선택하세요 (최대 10MB)
+              또는 클릭해서 파일을 선택하세요. 최대 10MB
             </p>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
@@ -252,7 +266,10 @@ export function PdfUpload() {
                     className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2"
                   >
                     <div className="flex items-center gap-3">
-                      <motion.div whileHover={{ rotate: 5 }} transition={{ type: "spring", stiffness: 400 }}>
+                      <motion.div
+                        whileHover={{ rotate: 5 }}
+                        transition={{ type: "spring", stiffness: 400 }}
+                      >
                         {file.status === "uploading" ? (
                           <Loader2 className="h-4 w-4 animate-spin text-primary" />
                         ) : (

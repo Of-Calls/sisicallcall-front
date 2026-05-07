@@ -4,6 +4,7 @@ import {
   ChevronRight,
   FileUp,
   LayoutDashboard,
+  Link2,
   LogOut,
   MessageSquareText,
   Phone,
@@ -22,6 +23,11 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
+    label: "연동 설정",
+    href: "/dashboard/integrations",
+    icon: Link2,
+  },
+  {
     label: "통화 이력",
     href: "/dashboard/calls",
     icon: Phone,
@@ -36,7 +42,7 @@ const menuItems = [
     href: "/dashboard/knowledge",
     icon: FileUp,
   },
-]
+] as const
 
 const sidebarVariants = {
   hidden: { x: -20, opacity: 0 },
@@ -104,10 +110,12 @@ export function DashboardSidebar() {
           <span className="text-lg font-bold text-foreground">시시콜콜</span>
         </Link>
       </motion.div>
+
       <nav className="flex-1 p-4">
         <ul className="space-y-1">
           {menuItems.map((item, idx) => {
             const isActive = pathname === item.href
+
             return (
               <motion.li
                 key={item.href}
@@ -129,7 +137,7 @@ export function DashboardSidebar() {
                     <item.icon className="h-5 w-5" aria-hidden="true" />
                   </motion.span>
                   {item.label}
-                  {isActive && (
+                  {isActive ? (
                     <motion.span
                       initial={{ opacity: 0, x: -5 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -137,13 +145,14 @@ export function DashboardSidebar() {
                     >
                       <ChevronRight className="h-4 w-4" aria-hidden="true" />
                     </motion.span>
-                  )}
+                  ) : null}
                 </Link>
               </motion.li>
             )
           })}
         </ul>
       </nav>
+
       <div className="border-t border-border p-4">
         <div className="mb-3 rounded-lg bg-muted/50 px-3 py-2">
           <p className="truncate text-sm font-semibold text-foreground">
@@ -153,6 +162,7 @@ export function DashboardSidebar() {
             {user?.email ?? "관리자 계정"}
           </p>
         </div>
+
         <Button
           type="button"
           variant="outline"
