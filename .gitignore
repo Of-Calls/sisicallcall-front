@@ -21,3 +21,16 @@ coverage/
 *.log
 *.tsbuildinfo
 .DS_Store
+
+package-lock.json
+
+
+# Added by code-review-graph
+.code-review-graph/
+AGENTS.md
+CLAUDE.md
+.windsurfrules
+.opencode.json
+
+.mcp.json
+.claude
