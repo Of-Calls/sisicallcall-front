@@ -1,0 +1,37 @@
+
+> my-project@0.1.0 dev
+> vite --host 127.0.0.1 --port 5173
+
+
+  [32m[1mVITE[22m v7.3.2[39m  [2mready in [0m[1m265[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5173[22m/[39m
+[2m오후 4:03:31[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/landing/header.tsx, /src/styles/globals.css[22m
+[2m오후 4:09:49[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/landing/header.tsx, /src/styles/globals.css[22m
+[2m오후 4:15:06[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/landing/header.tsx, /src/styles/globals.css[22m
+[2m오후 4:19:25[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/landing/header.tsx, /src/styles/globals.css[22m
+[2m오후 4:24:58[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/landing/header.tsx, /src/styles/globals.css[22m
+[2m오후 4:27:09[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/landing/header.tsx, /src/styles/globals.css[22m
+[2m오후 4:29:46[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/dashboard/sidebar.tsx, /src/styles/globals.css[22m
+[2m오후 4:46:24[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/dashboard/sentiment-chart.tsx, /src/styles/globals.css[22m
+[2m오후 4:46:24[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/dashboard/intent-chart.tsx, /src/styles/globals.css[22m
+[2m오후 4:46:24[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/dashboard/DashboardHomePage.tsx, /src/styles/globals.css[22m
+[2m오후 4:46:24[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/landing/header.tsx, /src/styles/globals.css[22m
+[2m오후 5:20:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/dashboard/intent-chart.tsx, /src/styles/globals.css[22m
+[2m오후 5:20:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/landing/header.tsx, /src/styles/globals.css[22m
+[2m오후 5:20:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/dashboard/DashboardHomePage.tsx, /src/styles/globals.css[22m
+[2m오후 5:20:51[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/dashboard/sentiment-chart.tsx, /src/styles/globals.css[22m
+[2m오후 5:20:51[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/components/ui/animated-section.tsx[22m
+[2m오후 5:20:51[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/components/ui/icon-button.tsx[22m
+[2m오후 5:20:51[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/components/ui/motion-card.tsx[22m
+[2m오후 5:25:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/dashboard/intent-chart.tsx, /src/styles/globals.css[22m
+[2m오후 5:25:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/dashboard/sentiment-chart.tsx, /src/styles/globals.css[22m
+[2m오후 5:25:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/landing/header.tsx, /src/styles/globals.css[22m
+[2m오후 5:25:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/dashboard/DashboardHomePage.tsx, /src/styles/globals.css[22m
+[2m오후 5:25:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/components/ui/animated-section.tsx[22m
+[2m오후 5:25:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/components/ui/icon-button.tsx[22m
+[2m오후 5:25:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/components/ui/motion-card.tsx[22m
+[2m오후 5:26:57[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/components/ui/animated-section.tsx[22m
+[2m오후 5:27:00[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/components/ui/icon-button.tsx[22m
+[2m오후 5:27:06[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/dashboard/DashboardHomePage.tsx, /src/styles/globals.css[22m
+[2m오후 5:27:22[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/globals.css, /src/components/ui/icon-button.tsx[22m
