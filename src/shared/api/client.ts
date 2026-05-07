@@ -15,6 +15,31 @@ type ApiFetchOptions = RequestInit & {
   skipAuth?: boolean
 }
 
+export type ApiResponseEnvelope<T> = {
+  data: T
+  request_id?: string
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null
+}
+
+export function unwrapApiResponse<T>(
+  response: ApiResponseEnvelope<T> | T,
+): T {
+  if (isRecord(response) && "data" in response) {
+    return (response as ApiResponseEnvelope<T>).data
+  }
+
+  return response as T
+}
+
+export function warnInDev(message: string, details?: unknown) {
+  if (import.meta.env.DEV) {
+    console.warn(message, details)
+  }
+}
+
 export async function apiFetch<T>(
   path: string,
   options: ApiFetchOptions = {},

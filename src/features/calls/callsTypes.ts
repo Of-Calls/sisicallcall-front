@@ -94,8 +94,3 @@ export type CallListQuery = {
   offset?: number
   limit?: number
 }
-
-export type ApiResponse<T> = {
-  data: T
-  request_id: string
-}

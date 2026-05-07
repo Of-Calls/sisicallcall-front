@@ -38,6 +38,7 @@ export function useDashboardIntentDistribution(
   return useQuery({
     queryKey: ["dashboard", "intent-distribution", params],
     queryFn: () => getDashboardIntentDistribution(params),
+    retry: false,
   })
 }
 

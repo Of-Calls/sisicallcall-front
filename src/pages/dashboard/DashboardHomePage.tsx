@@ -4,7 +4,6 @@ import { AlertTriangle } from "lucide-react"
 import { AlertBanner } from "@/components/dashboard/alert-banner"
 import { CallList } from "@/components/dashboard/call-list"
 import { IntentChart } from "@/components/dashboard/intent-chart"
-import { PdfUpload } from "@/components/dashboard/pdf-upload"
 import { SentimentChart } from "@/components/dashboard/sentiment-chart"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -220,7 +219,7 @@ export function DashboardHomePage() {
   const stats = statsQuery.data ?? emptyStats
   const alerts = priorityQueueQuery.data ?? []
   const recentCalls = recentCallsQuery.data?.items ?? []
-  const intentDistribution = intentDistributionQuery.data ?? []
+  const intentDistribution = intentDistributionQuery.data ?? null
   const emotionDistribution =
     emotionDistributionQuery.data ?? emptyEmotionDistribution
   const visibleAlertCount = alerts.length
@@ -274,6 +273,11 @@ export function DashboardHomePage() {
           data={intentDistribution}
           isLoading={intentDistributionQuery.isLoading}
           error={intentDistributionQuery.error}
+          isBackendPending={
+            intentDistributionQuery.data === null &&
+            !intentDistributionQuery.isLoading &&
+            !intentDistributionQuery.error
+          }
         />
       </div>
 
@@ -282,8 +286,6 @@ export function DashboardHomePage() {
         isLoading={recentCallsQuery.isLoading}
         error={recentCallsQuery.error}
       />
-
-      <PdfUpload />
     </div>
   )
 }

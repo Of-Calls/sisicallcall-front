@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import type { ReactNode } from "react"
 import { motion } from "framer-motion"
 import { BarChart3, Hash, TrendingUp } from "lucide-react"
 import {
@@ -14,20 +14,17 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useDashboardStats } from "@/features/dashboard/dashboardQueries"
 import {
   useEmotionDistribution,
-  useVocPriorityQueue,
+  useVocKeywordStats,
+  useVocPriorityDistribution,
 } from "@/features/voc/vocQueries"
-import type { EmotionKey, VocPriorityItem } from "@/features/voc/vocTypes"
-
-const pendingKeywordsData = [
-  { keyword: "반복 문의", status: "준비 중" },
-  { keyword: "불만 표현", status: "준비 중" },
-  { keyword: "상담원 연결", status: "준비 중" },
-  { keyword: "업무 요청", status: "준비 중" },
-  { keyword: "해결 지연", status: "준비 중" },
-  { keyword: "콜백 요청", status: "준비 중" },
-]
+import type {
+  EmotionKey,
+  VocKeywordStatsItem,
+  VocPriorityDistributionItem,
+} from "@/features/voc/vocTypes"
 
 const emotionColors: Record<EmotionKey, string> = {
   positive: "#10b981",
@@ -40,7 +37,6 @@ const priorityColors: Record<string, string> = {
   critical: "#ef4444",
   high: "#f97316",
   medium: "#eab308",
-  normal: "#64748b",
   low: "#22c55e",
 }
 
@@ -57,44 +53,186 @@ const cardVariants = {
   }),
 }
 
-function getPriorityLabel(priority: string) {
-  const labels: Record<string, string> = {
-    critical: "Critical",
-    high: "High",
-    medium: "Medium",
-    normal: "Normal",
-    low: "Low",
-  }
-
-  return labels[priority] ?? priority
+function PendingAggregationCard({
+  title,
+  icon,
+}: {
+  title: string
+  icon: ReactNode
+}) {
+  return (
+    <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          {icon}
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed text-center text-sm text-muted-foreground">
+          백엔드 집계 API 연결 대기
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
-function buildPriorityDistribution(items: VocPriorityItem[]) {
-  const counts = items.reduce<Record<string, number>>((acc, item) => {
-    const priority = item.priority || "normal"
-    acc[priority] = (acc[priority] ?? 0) + 1
-    return acc
-  }, {})
+function EmptyAggregationCard({
+  title,
+  icon,
+  message,
+}: {
+  title: string
+  icon: ReactNode
+  message: string
+}) {
+  return (
+    <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          {icon}
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed text-center text-sm text-muted-foreground">
+          {message}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
-  return Object.entries(counts).map(([priority, count]) => ({
-    priority: getPriorityLabel(priority),
-    count,
-    color: priorityColors[priority] ?? priorityColors.normal,
-  }))
+function KeywordStatsCard({ items }: { items: VocKeywordStatsItem[] }) {
+  return (
+    <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Hash className="h-5 w-5 text-primary" aria-hidden="true" />
+          핵심 키워드 분석
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {items.map((item, index) => (
+          <motion.div
+            key={`${item.keyword}-${index}`}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.05 * index }}
+            className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
+          >
+            <div className="flex items-center gap-3">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                {index + 1}
+              </span>
+              <span className="text-sm font-medium">{item.keyword}</span>
+            </div>
+            <Badge variant="outline">{item.count.toLocaleString("ko-KR")}건</Badge>
+          </motion.div>
+        ))}
+      </CardContent>
+    </Card>
+  )
+}
+
+function PriorityDistributionCard({
+  items,
+}: {
+  items: VocPriorityDistributionItem[]
+}) {
+  return (
+    <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <BarChart3 className="h-5 w-5 text-primary" aria-hidden="true" />
+          우선순위 항목 분포
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[220px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={items} layout="vertical">
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#e5e7eb"
+                horizontal={false}
+              />
+              <XAxis
+                type="number"
+                tick={{ fill: "#6b7280", fontSize: 12 }}
+                axisLine={{ stroke: "#e5e7eb" }}
+                allowDecimals={false}
+              />
+              <YAxis
+                type="category"
+                dataKey="label"
+                tick={{ fill: "#6b7280", fontSize: 12 }}
+                axisLine={{ stroke: "#e5e7eb" }}
+                width={70}
+              />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: "8px",
+                  border: "1px solid #e5e7eb",
+                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                }}
+                formatter={(value) => [`${value}건`, "통화"]}
+              />
+              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                {items.map((item) => (
+                  <Cell
+                    key={item.priority}
+                    fill={priorityColors[item.priority] ?? "#64748b"}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          {items.map((item) => (
+            <div
+              key={item.priority}
+              className="rounded-lg border border-border p-3 text-sm"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-medium text-foreground">{item.label}</span>
+                <Badge variant="outline">{item.count.toLocaleString("ko-KR")}건</Badge>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">{item.priority}</p>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 export function VocPage() {
+  const statsQuery = useDashboardStats()
   const emotionQuery = useEmotionDistribution()
-  const priorityQuery = useVocPriorityQueue()
+  const keywordStatsQuery = useVocKeywordStats()
+  const priorityDistributionQuery = useVocPriorityDistribution()
 
   const emotionData = emotionQuery.data ?? []
-  const priorityItems = priorityQuery.data ?? []
+  const analyzedCalls = emotionData.reduce((sum, item) => sum + item.value, 0)
+  const totalCalls = statsQuery.data?.totalCalls ?? null
   const isEmotionEmpty =
     emotionData.length === 0 || emotionData.every((item) => item.value === 0)
-  const priorityDistribution = useMemo(
-    () => buildPriorityDistribution(priorityItems),
-    [priorityItems],
-  )
+
+  const keywordItems = keywordStatsQuery.data
+  const priorityItems = priorityDistributionQuery.data
+  const keywordStatsItems = Array.isArray(keywordItems) ? keywordItems : []
+  const priorityDistributionItems = Array.isArray(priorityItems)
+    ? priorityItems
+    : []
+  const isKeywordPending = keywordItems === null
+  const isPriorityPending = priorityItems === null
+  const isKeywordEmpty = Array.isArray(keywordItems) && keywordItems.length === 0
+  const isPriorityEmpty =
+    Array.isArray(priorityItems) &&
+    (priorityItems.length === 0 || priorityItems.every((item) => item.count === 0))
 
   return (
     <div className="space-y-6 p-6">
@@ -107,16 +245,21 @@ export function VocPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">VOC 분석</h1>
           <p className="text-sm text-muted-foreground">
-            고객 통화 데이터에서 확인하는 감정과 우선순위 인사이트
+            고객 통화 데이터에서 감정 분포와 집계 지표를 확인합니다.
           </p>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <BarChart3 className="h-4 w-4" aria-hidden="true" />
-          <span>Dashboard 데이터 기준</span>
+          <span>전체 집계 기준</span>
         </div>
       </motion.div>
 
-      <motion.div custom={0} initial="hidden" animate="visible" variants={cardVariants}>
+      <motion.div
+        custom={0}
+        initial="hidden"
+        animate="visible"
+        variants={cardVariants}
+      >
         <Card className="transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -132,11 +275,18 @@ export function VocPage() {
               </div>
             ) : emotionQuery.isError ? (
               <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
-                감정 분석 데이터를 불러오지 못했습니다.
+                감정 분포 집계를 불러오지 못했습니다.
               </div>
             ) : isEmotionEmpty ? (
-              <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
-                아직 감정 분석 데이터가 없습니다.
+              <div className="space-y-4">
+                <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+                  집계된 감정 분포가 없습니다.
+                </div>
+                <p className="text-center text-sm text-muted-foreground">
+                  {totalCalls === null
+                    ? `분석된 통화 ${analyzedCalls.toLocaleString("ko-KR")}건 기준`
+                    : `분석된 통화 ${analyzedCalls.toLocaleString("ko-KR")}건 / 전체 통화 ${totalCalls.toLocaleString("ko-KR")}건`}
+                </p>
               </div>
             ) : (
               <>
@@ -183,6 +333,11 @@ export function VocPage() {
                     </div>
                   ))}
                 </div>
+                <p className="mt-4 text-center text-sm text-muted-foreground">
+                  {totalCalls === null
+                    ? `분석된 통화 ${analyzedCalls.toLocaleString("ko-KR")}건 기준`
+                    : `분석된 통화 ${analyzedCalls.toLocaleString("ko-KR")}건 / 전체 통화 ${totalCalls.toLocaleString("ko-KR")}건`}
+                </p>
               </>
             )}
           </CardContent>
@@ -190,133 +345,84 @@ export function VocPage() {
       </motion.div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <motion.div custom={1} initial="hidden" animate="visible" variants={cardVariants}>
-          <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Hash className="h-5 w-5 text-primary" aria-hidden="true" />
-                핵심 키워드 분석
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-                전용 VOC 클러스터 API가 없어 현재는 준비 중인 영역입니다.
-              </div>
-              <div className="space-y-3">
-                {pendingKeywordsData.map((item, idx) => (
-                  <motion.div
-                    key={item.keyword}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.05 * idx }}
-                    className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                        {idx + 1}
-                      </span>
-                      <span className="text-sm font-medium">{item.keyword}</span>
-                    </div>
-                    <Badge variant="outline">{item.status}</Badge>
-                  </motion.div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        <motion.div
+          custom={1}
+          initial="hidden"
+          animate="visible"
+          variants={cardVariants}
+        >
+          {keywordStatsQuery.isLoading ? (
+            <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Hash className="h-5 w-5 text-primary" aria-hidden="true" />
+                  핵심 키워드 분석
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-[300px] w-full rounded-lg" />
+              </CardContent>
+            </Card>
+          ) : keywordStatsQuery.isError ? (
+            <EmptyAggregationCard
+              title="핵심 키워드 분석"
+              icon={<Hash className="h-5 w-5 text-primary" aria-hidden="true" />}
+              message={`키워드 집계를 불러오지 못했습니다. ${keywordStatsQuery.error.message}`}
+            />
+          ) : isKeywordPending ? (
+            <PendingAggregationCard
+              title="핵심 키워드 분석"
+              icon={<Hash className="h-5 w-5 text-primary" aria-hidden="true" />}
+            />
+          ) : isKeywordEmpty ? (
+            <EmptyAggregationCard
+              title="핵심 키워드 분석"
+              icon={<Hash className="h-5 w-5 text-primary" aria-hidden="true" />}
+              message="집계된 핵심 키워드가 없습니다."
+            />
+          ) : (
+            <KeywordStatsCard items={keywordStatsItems} />
+          )}
         </motion.div>
 
-        <motion.div custom={2} initial="hidden" animate="visible" variants={cardVariants}>
-          <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <BarChart3 className="h-5 w-5 text-primary" aria-hidden="true" />
-                우선순위 항목 분포
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {priorityQuery.isLoading ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-[250px] w-full rounded-lg" />
-                  <div className="grid grid-cols-2 gap-3">
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                  </div>
-                </div>
-              ) : priorityQuery.isError ? (
-                <div className="flex h-[250px] items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
-                  우선순위 항목을 불러오지 못했습니다.
-                </div>
-              ) : priorityItems.length === 0 ? (
-                <div className="flex h-[250px] items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
-                  현재 우선순위 항목이 없습니다.
-                </div>
-              ) : (
-                <>
-                  <div className="h-[250px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={priorityDistribution} layout="vertical">
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          stroke="#e5e7eb"
-                          horizontal={false}
-                        />
-                        <XAxis
-                          type="number"
-                          tick={{ fill: "#6b7280", fontSize: 12 }}
-                          axisLine={{ stroke: "#e5e7eb" }}
-                          allowDecimals={false}
-                        />
-                        <YAxis
-                          type="category"
-                          dataKey="priority"
-                          tick={{ fill: "#6b7280", fontSize: 12 }}
-                          axisLine={{ stroke: "#e5e7eb" }}
-                          width={70}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            borderRadius: "8px",
-                            border: "1px solid #e5e7eb",
-                            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                          }}
-                          formatter={(value) => [`${value}건`, "통화"]}
-                        />
-                        <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                          {priorityDistribution.map((entry) => (
-                            <Cell key={entry.priority} fill={entry.color} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  <div className="mt-6 space-y-3">
-                    {priorityItems.slice(0, 4).map((item) => (
-                      <div
-                        key={item.id}
-                        className="rounded-lg border border-border p-3"
-                      >
-                        <div className="mb-2 flex items-center justify-between gap-3">
-                          <span className="text-sm font-medium">
-                            {item.primaryCategory}
-                          </span>
-                          <Badge variant="outline">
-                            {getPriorityLabel(item.priority)}
-                          </Badge>
-                        </div>
-                        <p className="line-clamp-2 text-sm text-muted-foreground">
-                          {item.summaryShort}
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {item.reason}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+        <motion.div
+          custom={2}
+          initial="hidden"
+          animate="visible"
+          variants={cardVariants}
+        >
+          {priorityDistributionQuery.isLoading ? (
+            <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <BarChart3 className="h-5 w-5 text-primary" aria-hidden="true" />
+                  우선순위 항목 분포
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-[300px] w-full rounded-lg" />
+              </CardContent>
+            </Card>
+          ) : priorityDistributionQuery.isError ? (
+            <EmptyAggregationCard
+              title="우선순위 항목 분포"
+              icon={<BarChart3 className="h-5 w-5 text-primary" aria-hidden="true" />}
+              message={`우선순위 분포 집계를 불러오지 못했습니다. ${priorityDistributionQuery.error.message}`}
+            />
+          ) : isPriorityPending ? (
+            <PendingAggregationCard
+              title="우선순위 항목 분포"
+              icon={<BarChart3 className="h-5 w-5 text-primary" aria-hidden="true" />}
+            />
+          ) : isPriorityEmpty ? (
+            <EmptyAggregationCard
+              title="우선순위 항목 분포"
+              icon={<BarChart3 className="h-5 w-5 text-primary" aria-hidden="true" />}
+              message="집계된 우선순위 항목이 없습니다."
+            />
+          ) : (
+            <PriorityDistributionCard items={priorityDistributionItems} />
+          )}
         </motion.div>
       </div>
     </div>

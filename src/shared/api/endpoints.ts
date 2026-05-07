@@ -11,6 +11,8 @@ export const endpoints = {
   dashboardRecentCalls: "/dashboard/recent-calls",
   dashboardIntentDistribution: "/dashboard/intent-distribution",
   dashboardEmotionDistribution: "/dashboard/emotion-distribution",
+  dashboardKeywordStats: "/dashboard/keyword-stats",
+  dashboardPriorityDistribution: "/dashboard/priority-distribution",
 
   callList: "/call",
   callDetail: (callId: string) => `/call/${callId}`,

@@ -19,7 +19,9 @@ function toNumber(value: unknown, fallback = 0): number {
 }
 
 function toString(value: unknown, fallback = ""): string {
-  return typeof value === "string" && value.length > 0 ? value : fallback
+  return typeof value === "string" && value.trim().length > 0
+    ? value
+    : fallback
 }
 
 export function normalizeDashboardStats(

@@ -1,7 +1,17 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { motion } from "framer-motion"
-import { Activity, Bot, Clock, MessageSquare, Phone, User } from "lucide-react"
+import {
+  Activity,
+  Bot,
+  Check,
+  Clock,
+  Copy,
+  MessageSquare,
+  Phone,
+  User,
+} from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Sheet,
   SheetContent,
@@ -42,10 +52,14 @@ import type {
 } from "@/features/calls/callsTypes"
 import { cn } from "@/lib/utils"
 
-const DEFAULT_QUERY = {
-  status: "all" as const,
-  offset: 0,
-  limit: 20,
+const PAGE_SIZE = 10
+
+function buildCallsQuery(page: number) {
+  return {
+    status: "all" as const,
+    offset: (page - 1) * PAGE_SIZE,
+    limit: PAGE_SIZE,
+  }
 }
 
 function getCallIntent(call: BackendCall) {
@@ -60,6 +74,14 @@ function getCallSummaryPreview(call: BackendCall) {
   }
 
   return `${getCallStatusLabel(call.status)} · ${formatDuration(call.duration_sec)}`
+}
+
+function formatCallId(callId: string) {
+  if (callId.length <= 18) {
+    return callId
+  }
+
+  return `${callId.slice(0, 8)}…${callId.slice(-6)}`
 }
 
 function CallsTableSkeleton() {
@@ -137,62 +159,62 @@ function McpActionLogsSection({
             const actionLabel = action.action_detail ?? action.action_type
 
             return (
-            <div
-              key={action.id}
-              className="rounded-lg border bg-background p-3 text-sm"
-            >
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "font-normal",
-                    getMcpActionTypeClassName(actionLabel),
-                  )}
-                >
-                  {actionLabel}
-                </Badge>
-                <Badge
-                  className={cn(
-                    "border font-normal",
-                    getMcpStatusClassName(action.status),
-                  )}
-                >
-                  {action.status}
-                </Badge>
-                <span className="ml-auto text-xs text-muted-foreground">
-                  {formatDateTime(action.executed_at)}
-                </span>
-              </div>
+              <div
+                key={action.id}
+                className="rounded-lg border bg-background p-3 text-sm"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "font-normal",
+                      getMcpActionTypeClassName(actionLabel),
+                    )}
+                  >
+                    {actionLabel}
+                  </Badge>
+                  <Badge
+                    className={cn(
+                      "border font-normal",
+                      getMcpStatusClassName(action.status),
+                    )}
+                  >
+                    {action.status}
+                  </Badge>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {formatDateTime(action.executed_at)}
+                  </span>
+                </div>
 
-              <p className="mt-2 text-muted-foreground">
-                {action.action_detail ?? "액션 상세 정보가 없습니다."}
-              </p>
-
-              {action.error_message ? (
-                <p className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-800">
-                  {action.error_message}
+                <p className="mt-2 text-muted-foreground">
+                  {action.action_detail ?? "액션 상세 정보가 없습니다."}
                 </p>
-              ) : null}
 
-              <div className="mt-3 space-y-2">
-                <details className="rounded-md border bg-muted/30 px-3 py-2">
-                  <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
-                    request_payload
-                  </summary>
-                  <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words text-xs text-muted-foreground">
-                    {formatJsonPayload(action.request_payload)}
-                  </pre>
-                </details>
-                <details className="rounded-md border bg-muted/30 px-3 py-2">
-                  <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
-                    response_payload
-                  </summary>
-                  <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words text-xs text-muted-foreground">
-                    {formatJsonPayload(action.response_payload)}
-                  </pre>
-                </details>
+                {action.error_message ? (
+                  <p className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-800">
+                    {action.error_message}
+                  </p>
+                ) : null}
+
+                <div className="mt-3 space-y-2">
+                  <details className="rounded-md border bg-muted/30 px-3 py-2">
+                    <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+                      request_payload
+                    </summary>
+                    <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words text-xs text-muted-foreground">
+                      {formatJsonPayload(action.request_payload)}
+                    </pre>
+                  </details>
+                  <details className="rounded-md border bg-muted/30 px-3 py-2">
+                    <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+                      response_payload
+                    </summary>
+                    <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words text-xs text-muted-foreground">
+                      {formatJsonPayload(action.response_payload)}
+                    </pre>
+                  </details>
+                </div>
               </div>
-            </div>
             )
           })}
         </div>
@@ -202,19 +224,57 @@ function McpActionLogsSection({
 }
 
 export function CallsPage() {
+  const [page, setPage] = useState(1)
   const [selectedCallId, setSelectedCallId] = useState<string | null>(null)
-  const callsQuery = useCalls(DEFAULT_QUERY)
+  const [copiedCallId, setCopiedCallId] = useState<string | null>(null)
+
+  const callsParams = useMemo(() => buildCallsQuery(page), [page])
+  const callsQuery = useCalls(callsParams)
   const callDetailQuery = useCallDetail(selectedCallId)
   const transcriptsQuery = useCallTranscripts(selectedCallId)
   const mcpActionsQuery = useCallMcpActions(selectedCallId)
   const summaryQuery = useCallSummary(selectedCallId)
 
   const calls = callsQuery.data?.items ?? []
+  const totalCalls = callsQuery.data?.total ?? 0
+  const totalPages = Math.max(1, Math.ceil(totalCalls / PAGE_SIZE))
   const selectedCall =
     callDetailQuery.data ?? calls.find((call) => call.id === selectedCallId) ?? null
   const transcripts = transcriptsQuery.data?.items ?? []
   const mcpActions = mcpActionsQuery.data?.items ?? []
   const summary = summaryQuery.data
+
+  useEffect(() => {
+    if (callsQuery.isFetching) {
+      return
+    }
+
+    if (totalCalls === 0) {
+      return
+    }
+
+    if (page > totalPages) {
+      setPage(totalPages)
+    }
+  }, [callsQuery.isFetching, page, totalCalls, totalPages])
+
+  useEffect(() => {
+    if (!copiedCallId) {
+      return
+    }
+
+    const timeout = window.setTimeout(() => setCopiedCallId(null), 1500)
+    return () => window.clearTimeout(timeout)
+  }, [copiedCallId])
+
+  async function handleCopyCallId(callId: string) {
+    try {
+      await navigator.clipboard.writeText(callId)
+      setCopiedCallId(callId)
+    } catch {
+      setCopiedCallId(null)
+    }
+  }
 
   return (
     <div className="space-y-6 p-6">
@@ -227,12 +287,12 @@ export function CallsPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">통화 이력</h1>
           <p className="text-sm text-muted-foreground">
-            전체 AI 상담 통화 내역을 조회하고 분석하세요.
+            전체 AI 상담 통화 이력을 조회하고 분석하세요.
           </p>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Phone className="h-4 w-4" aria-hidden="true" />
-          <span>총 {callsQuery.data?.total ?? 0}건</span>
+          <span>총 {totalCalls.toLocaleString("ko-KR")}건</span>
         </div>
       </motion.div>
 
@@ -253,10 +313,10 @@ export function CallsPage() {
             <TableRow className="bg-muted/50">
               <TableHead className="font-semibold">일시</TableHead>
               <TableHead className="font-semibold">통화 ID</TableHead>
-              <TableHead className="font-semibold">발신자 번호</TableHead>
+              <TableHead className="font-semibold">발신 번호</TableHead>
               <TableHead className="font-semibold">주요 의도</TableHead>
-              <TableHead className="font-semibold">통화 시간</TableHead>
-              <TableHead className="font-semibold">상태</TableHead>
+              <TableHead className="font-semibold text-center">통화 시간</TableHead>
+              <TableHead className="font-semibold text-center">상태</TableHead>
               <TableHead className="font-semibold">요약</TableHead>
             </TableRow>
           </TableHeader>
@@ -276,38 +336,105 @@ export function CallsPage() {
                 key={call.id}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.05 * idx, duration: 0.3 }}
+                transition={{ delay: 0.03 * idx, duration: 0.25 }}
                 onClick={() => setSelectedCallId(call.id)}
-                className="group cursor-pointer transition-colors hover:bg-muted/50"
+                className="group cursor-pointer border-b align-top transition-colors hover:bg-muted/50"
               >
-                <TableCell className="text-sm text-muted-foreground">
+                <TableCell className="py-4 text-sm text-muted-foreground">
                   {formatDateTime(call.started_at)}
                 </TableCell>
-                <TableCell className="font-mono text-sm">{call.id}</TableCell>
-                <TableCell className="text-sm">{call.caller_number ?? "번호 없음"}</TableCell>
-                <TableCell>
+                <TableCell className="py-4">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="font-mono text-sm"
+                      title={call.id}
+                    >
+                      {formatCallId(call.id)}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      className="h-7 w-7 shrink-0 text-muted-foreground"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        void handleCopyCallId(call.id)
+                      }}
+                      aria-label="통화 ID 복사"
+                    >
+                      {copiedCallId === call.id ? (
+                        <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                      )}
+                    </Button>
+                  </div>
+                </TableCell>
+                <TableCell className="py-4 text-sm">
+                  {call.caller_number ?? "번호 없음"}
+                </TableCell>
+                <TableCell className="py-4">
                   <Badge variant="outline" className="font-normal">
                     {getCallIntent(call)}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
+                <TableCell className="py-4 text-center text-sm text-muted-foreground">
                   {formatDuration(call.duration_sec)}
                 </TableCell>
-                <TableCell>
-                  <Badge className={cn("border font-normal", getCallStatusClassName(call.status))}>
+                <TableCell className="py-4 text-center">
+                  <Badge
+                    className={cn(
+                      "border font-normal",
+                      getCallStatusClassName(call.status),
+                    )}
+                  >
                     {getCallStatusLabel(call.status)}
                   </Badge>
                 </TableCell>
-                <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground transition-colors group-hover:text-foreground">
-                  {getCallSummaryPreview(call)}
+                <TableCell className="max-w-[260px] py-4 text-sm text-muted-foreground transition-colors group-hover:text-foreground">
+                  <div className="line-clamp-2">{getCallSummaryPreview(call)}</div>
                 </TableCell>
               </motion.tr>
             ))}
           </TableBody>
         </Table>
+
+        <div className="flex items-center justify-between border-t border-border px-4 py-3 text-sm">
+          <div className="text-muted-foreground">
+            페이지 {page} / {totalPages}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page <= 1 || callsQuery.isFetching}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+            >
+              이전
+            </Button>
+            <span className="min-w-24 text-center text-muted-foreground">
+              총 {totalCalls.toLocaleString("ko-KR")}건
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages || callsQuery.isFetching}
+              onClick={() =>
+                setPage((current) => Math.min(totalPages, current + 1))
+              }
+            >
+              다음
+            </Button>
+          </div>
+        </div>
       </motion.div>
 
-      <Sheet open={!!selectedCallId} onOpenChange={(open) => !open && setSelectedCallId(null)}>
+      <Sheet
+        open={!!selectedCallId}
+        onOpenChange={(open) => !open && setSelectedCallId(null)}
+      >
         <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
           <SheetHeader className="border-b border-border pb-4">
             <SheetTitle className="flex items-center gap-2">
@@ -337,7 +464,7 @@ export function CallsPage() {
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">발신자</p>
+                    <p className="text-xs text-muted-foreground">발신 번호</p>
                     <p className="text-sm font-medium">
                       {selectedCall.caller_number ?? "번호 없음"}
                     </p>
@@ -389,7 +516,8 @@ export function CallsPage() {
                         감정: {getEmotionLabel(summary.summary.customer_emotion)}
                       </Badge>
                       <Badge variant="outline">
-                        해결 상태: {getResolutionStatusLabel(summary.summary.resolution_status)}
+                        해결 상태:{" "}
+                        {getResolutionStatusLabel(summary.summary.resolution_status)}
                       </Badge>
                     </div>
                   </div>
@@ -409,7 +537,7 @@ export function CallsPage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-primary" aria-hidden="true" />
-                  <h3 className="font-semibold">대화 스크립트 (STT)</h3>
+                  <h3 className="font-semibold">대화 스크립트</h3>
                 </div>
 
                 {transcriptsQuery.isLoading ? (

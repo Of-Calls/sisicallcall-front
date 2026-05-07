@@ -13,22 +13,37 @@ export type EmotionChartDatum = {
   key: EmotionKey
 }
 
-export type VocPriorityItemResponse = {
-  call_id: string
-  tenant_id?: string
-  priority: string
-  summary_short?: string
-  primary_category?: string
-  reason?: string
-  created_at?: string
+export type VocKeywordStatsResponseItem = {
+  keyword?: string
+  label?: string
+  count?: number | string
 }
 
-export type VocPriorityItem = {
-  id: string
-  callId: string
-  priority: string
-  summaryShort: string
-  primaryCategory: string
-  reason: string
-  createdAt: string
+export type VocKeywordStatsResponse = {
+  items?: VocKeywordStatsResponseItem[]
+  data?: VocKeywordStatsResponseItem[]
+  request_id?: string
+}
+
+export type VocKeywordStatsItem = {
+  keyword: string
+  count: number
+}
+
+export type VocPriorityLevel = "critical" | "high" | "medium" | "low"
+
+export type VocPriorityDistributionRecord = Partial<
+  Record<VocPriorityLevel, number | string>
+>
+
+export type VocPriorityDistributionResponseItem = {
+  priority?: string
+  label?: string
+  count?: number | string
+}
+
+export type VocPriorityDistributionItem = {
+  priority: VocPriorityLevel
+  label: string
+  count: number
 }

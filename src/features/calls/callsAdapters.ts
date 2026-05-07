@@ -7,7 +7,7 @@ import type {
 
 export function formatDuration(seconds: number | null | undefined) {
   if (typeof seconds !== "number" || !Number.isFinite(seconds)) {
-    return "준비 중"
+    return "집계 중"
   }
 
   const minutes = Math.floor(seconds / 60)
@@ -44,7 +44,7 @@ export function getCallStatusLabel(status: CallStatus | string | undefined) {
     case "error":
       return "오류"
     default:
-      return "알 수 없음"
+      return "상태 확인 중"
   }
 }
 
@@ -63,7 +63,9 @@ export function getCallStatusClassName(status: CallStatus | string | undefined) 
   }
 }
 
-export function getResponsePathLabel(responsePath: ResponsePath | null | undefined) {
+export function getResponsePathLabel(
+  responsePath: ResponsePath | null | undefined,
+) {
   switch (responsePath) {
     case "cache":
       return "캐시"
@@ -76,15 +78,19 @@ export function getResponsePathLabel(responsePath: ResponsePath | null | undefin
     case "escalation":
       return "상담원 연결"
     default:
-      return "일반 응대"
+      return "일반 응답"
   }
 }
 
-export function getSpeakerLabel(speaker: TranscriptSpeaker | string | undefined) {
+export function getSpeakerLabel(
+  speaker: TranscriptSpeaker | string | undefined,
+) {
   return speaker === "customer" ? "고객" : "AI 에이전트"
 }
 
-export function getEmotionLabel(emotion: BackendSummary["summary"]["customer_emotion"]) {
+export function getEmotionLabel(
+  emotion: BackendSummary["summary"]["customer_emotion"],
+) {
   switch (emotion) {
     case "positive":
       return "긍정"

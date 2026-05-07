@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
 import {
   getEmotionDistribution,
-  getVocPriorityQueue,
+  getVocKeywordStats,
+  getVocPriorityDistribution,
 } from "@/features/voc/vocApi"
 
 export function useEmotionDistribution() {
@@ -11,9 +12,18 @@ export function useEmotionDistribution() {
   })
 }
 
-export function useVocPriorityQueue() {
+export function useVocKeywordStats() {
   return useQuery({
-    queryKey: ["voc", "priority-queue"],
-    queryFn: getVocPriorityQueue,
+    queryKey: ["voc", "keyword-stats"],
+    queryFn: getVocKeywordStats,
+    retry: false,
+  })
+}
+
+export function useVocPriorityDistribution() {
+  return useQuery({
+    queryKey: ["voc", "priority-distribution"],
+    queryFn: getVocPriorityDistribution,
+    retry: false,
   })
 }

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   getCallDetail,
   getCallMcpActions,
@@ -12,6 +12,7 @@ export function useCalls(query: CallListQuery) {
   return useQuery({
     queryKey: ["calls", query],
     queryFn: () => getCalls(query),
+    placeholderData: keepPreviousData,
   })
 }
 

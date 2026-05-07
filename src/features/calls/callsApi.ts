@@ -1,7 +1,6 @@
-import { apiFetch } from "@/shared/api/client"
+import { apiFetch, unwrapApiResponse } from "@/shared/api/client"
 import { endpoints } from "@/shared/api/endpoints"
 import type {
-  ApiResponse,
   BackendCall,
   BackendSummary,
   CallListData,
@@ -37,55 +36,45 @@ function buildCallsSearchParams(query: CallListQuery = {}) {
   return queryString ? `?${queryString}` : ""
 }
 
-function unwrapApiResponse<T>(response: ApiResponse<T> | T) {
-  if (
-    typeof response === "object" &&
-    response !== null &&
-    "data" in response
-  ) {
-    return (response as ApiResponse<T>).data
-  }
-
-  return response as T
-}
-
 export async function getCalls(query?: CallListQuery) {
-  const response = await apiFetch<ApiResponse<CallListData>>(
+  const response = await apiFetch<CallListData | { data: CallListData }>(
     `${endpoints.callList}${buildCallsSearchParams(query)}`,
   )
 
-  return response.data
+  return unwrapApiResponse(response)
 }
 
 export async function getCallDetail(callId: string) {
-  const response = await apiFetch<ApiResponse<BackendCall>>(
+  const response = await apiFetch<BackendCall | { data: BackendCall }>(
     endpoints.callDetail(callId),
   )
 
-  return response.data
+  return unwrapApiResponse(response)
 }
 
 export async function getCallTranscripts(callId: string) {
-  const response = await apiFetch<ApiResponse<TranscriptListData>>(
-    endpoints.callTranscripts(callId),
-  )
+  const response = await apiFetch<
+    TranscriptListData | { data: TranscriptListData }
+  >(endpoints.callTranscripts(callId))
 
-  return response.data
+  return unwrapApiResponse(response)
 }
 
 export async function getCallMcpActions(callId: string) {
   const response = await apiFetch<
-    ApiResponse<McpActionLogsResponse> | McpActionLogsResponse
-  >(
-    endpoints.callActions(callId),
-  )
+    McpActionLogsResponse | { data: McpActionLogsResponse }
+  >(endpoints.callActions(callId))
 
   return unwrapApiResponse(response)
 }
 
 export async function getCallSummary(callId: string) {
   try {
-    return await apiFetch<BackendSummary>(endpoints.callSummary(callId))
+    const response = await apiFetch<BackendSummary | { data: BackendSummary }>(
+      endpoints.callSummary(callId),
+    )
+
+    return unwrapApiResponse(response)
   } catch (error) {
     if (error instanceof Error && error.message.includes("404")) {
       return null
