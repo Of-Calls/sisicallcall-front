@@ -134,6 +134,9 @@ export function useUpdateTenantDocumentChunk(
       void queryClient.invalidateQueries({
         queryKey: tenantDocumentQueryKeys.detail(tenantId, documentId),
       })
+      void queryClient.invalidateQueries({
+        queryKey: tenantDocumentQueryKeys.listScope(tenantId),
+      })
     },
   })
 }
