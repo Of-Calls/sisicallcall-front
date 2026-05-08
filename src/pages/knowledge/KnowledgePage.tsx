@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react"
-import type { ChangeEvent, DragEvent, ReactNode } from "react"
-import { motion } from "framer-motion"
-import { toast } from "sonner"
+import { useCallback, useEffect, useState } from "react";
+import type { ChangeEvent, DragEvent, ReactNode } from "react";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
 import {
   AlertCircle,
   CheckCircle2,
@@ -13,7 +13,7 @@ import {
   Sparkles,
   Trash2,
   Upload,
-} from "lucide-react"
+} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,26 +23,26 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet"
-import { Skeleton } from "@/components/ui/skeleton"
+} from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -50,9 +50,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import {
   useDeleteTenantDocument,
   useReindexTenantDocument,
@@ -60,30 +60,30 @@ import {
   useTenantDocuments,
   useUpdateTenantDocumentChunk,
   useUploadTenantDocument,
-} from "@/features/documents/documentQueries"
+} from "@/features/documents/documentQueries";
 import type {
   RagDocumentChunk,
   TenantDocument,
-} from "@/features/documents/documentTypes"
-import { cn } from "@/lib/utils"
+} from "@/features/documents/documentTypes";
+import { cn } from "@/lib/utils";
 import {
   buildDocumentTopicViews,
   documentStatusLabelMap,
   type DocumentTopicView,
-} from "@/pages/knowledge/knowledgeViewModels"
-import { useAuthStore } from "@/shared/auth/authStore"
+} from "@/pages/knowledge/knowledgeViewModels";
+import { useAuthStore } from "@/shared/auth/authStore";
 
 const documentQueryParams = {
   offset: 0,
   limit: 20,
-} as const
+} as const;
 
-const DOCUMENT_TABLE_COLUMN_COUNT = 6
-const readyStatuses = new Set(["ready", "completed"])
-const failedStatuses = new Set(["failed", "error"])
+const DOCUMENT_TABLE_COLUMN_COUNT = 6;
+const readyStatuses = new Set(["ready", "completed"]);
+const failedStatuses = new Set(["failed", "error"]);
 
-type KnowledgeTab = "topics" | "questions"
-type EditingChunkText = Record<string, string>
+type KnowledgeTab = "topics" | "questions";
+type EditingChunkText = Record<string, string>;
 
 const statusConfig: Record<
   string,
@@ -114,7 +114,7 @@ const statusConfig: Record<
     color: "bg-red-100 text-red-700 border-red-200",
     icon: <AlertCircle className="h-3 w-3" />,
   },
-}
+};
 
 function getStatusConfig(status: string) {
   return (
@@ -123,21 +123,23 @@ function getStatusConfig(status: string) {
       color: "bg-slate-100 text-slate-700 border-slate-200",
       icon: <Loader2 className="h-3 w-3 animate-spin" />,
     }
-  )
+  );
 }
 
 function isPdfFile(file: File) {
-  return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")
+  return (
+    file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")
+  );
 }
 
 function formatDateTime(value: string | null | undefined) {
   if (!value) {
-    return "시간 정보 없음"
+    return "시간 정보 없음";
   }
 
-  const date = new Date(value)
+  const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
-    return value
+    return value;
   }
 
   return date.toLocaleString("ko-KR", {
@@ -146,39 +148,39 @@ function formatDateTime(value: string | null | undefined) {
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-  })
+  });
 }
 
 function formatShortDate(value: string | null | undefined) {
   if (!value) {
-    return "반영 이력 없음"
+    return "반영 이력 없음";
   }
 
-  const date = new Date(value)
+  const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
-    return value
+    return value;
   }
 
   return date.toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  })
+  });
 }
 
 function formatPageLabel(sourcePages: number[]) {
   if (sourcePages.length === 0) {
-    return "페이지 정보 없음"
+    return "페이지 정보 없음";
   }
 
-  return sourcePages.map((page) => `p.${page}`).join(", ")
+  return sourcePages.map((page) => `p.${page}`).join(", ");
 }
 
 function matchesTopicSearch(topic: DocumentTopicView, keyword: string) {
-  const normalizedKeyword = keyword.trim().toLowerCase()
+  const normalizedKeyword = keyword.trim().toLowerCase();
 
   if (!normalizedKeyword) {
-    return true
+    return true;
   }
 
   const searchableText = [
@@ -189,17 +191,17 @@ function matchesTopicSearch(topic: DocumentTopicView, keyword: string) {
     ...topic.exampleQuestions,
   ]
     .join("\n")
-    .toLowerCase()
+    .toLowerCase();
 
-  return searchableText.includes(normalizedKeyword)
+  return searchableText.includes(normalizedKeyword);
 }
 
 function getTopicCountLabel(count: number | null | undefined) {
   if (typeof count !== "number") {
-    return "-"
+    return "-";
   }
 
-  return count.toLocaleString("ko-KR")
+  return count.toLocaleString("ko-KR");
 }
 
 function DocumentTableSkeleton() {
@@ -207,15 +209,17 @@ function DocumentTableSkeleton() {
     <>
       {Array.from({ length: 5 }).map((_, rowIndex) => (
         <TableRow key={rowIndex}>
-          {Array.from({ length: DOCUMENT_TABLE_COLUMN_COUNT }).map((__, cellIndex) => (
-            <TableCell key={cellIndex}>
-              <Skeleton className="h-4 w-full" />
-            </TableCell>
-          ))}
+          {Array.from({ length: DOCUMENT_TABLE_COLUMN_COUNT }).map(
+            (__, cellIndex) => (
+              <TableCell key={cellIndex}>
+                <Skeleton className="h-4 w-full" />
+              </TableCell>
+            ),
+          )}
         </TableRow>
       ))}
     </>
-  )
+  );
 }
 
 function TopicListSkeleton() {
@@ -225,7 +229,7 @@ function TopicListSkeleton() {
         <Skeleton key={index} className="h-28 w-full rounded-xl" />
       ))}
     </div>
-  )
+  );
 }
 
 function SheetStatusNotice({
@@ -233,9 +237,9 @@ function SheetStatusNotice({
   isActionDisabled,
   onReindex,
 }: {
-  status: string
-  isActionDisabled: boolean
-  onReindex: () => void
+  status: string;
+  isActionDisabled: boolean;
+  onReindex: () => void;
 }) {
   if (status === "processing") {
     return (
@@ -254,7 +258,7 @@ function SheetStatusNotice({
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (failedStatuses.has(status)) {
@@ -265,7 +269,9 @@ function SheetStatusNotice({
             <div className="flex items-start gap-3">
               <AlertCircle className="mt-0.5 h-5 w-5 text-red-600" />
               <div className="space-y-1">
-                <p className="font-medium text-red-900">문서 처리에 실패했습니다.</p>
+                <p className="font-medium text-red-900">
+                  문서 처리에 실패했습니다.
+                </p>
                 <p className="text-sm text-red-800">
                   다시 처리하면 문서를 다시 분석해서 상담 지식으로 준비합니다.
                 </p>
@@ -284,10 +290,10 @@ function SheetStatusNotice({
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
-  return null
+  return null;
 }
 
 function DocumentRow({
@@ -299,15 +305,15 @@ function DocumentRow({
   onOpen,
   onDelete,
 }: {
-  document: TenantDocument
-  topicCount: number | null
-  isSelected: boolean
-  isDeleting: boolean
-  isActionDisabled: boolean
-  onOpen: () => void
-  onDelete: () => void
+  document: TenantDocument;
+  topicCount: number | null;
+  isSelected: boolean;
+  isDeleting: boolean;
+  isActionDisabled: boolean;
+  onOpen: () => void;
+  onDelete: () => void;
 }) {
-  const status = getStatusConfig(document.status)
+  const status = getStatusConfig(document.status);
 
   return (
     <TableRow className={cn(isSelected && "bg-primary/5")}>
@@ -351,12 +357,16 @@ function DocumentRow({
           onClick={onDelete}
           className="gap-2 text-muted-foreground hover:text-red-500"
         >
-          {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+          {isDeleting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Trash2 className="h-4 w-4" />
+          )}
           삭제
         </Button>
       </TableCell>
     </TableRow>
-  )
+  );
 }
 
 function TopicDetailPanel({
@@ -372,19 +382,19 @@ function TopicDetailPanel({
   onSaveChunk,
   onToggleSourceDetails,
 }: {
-  topic: DocumentTopicView
-  editingChunkId: string | null
-  editingChunkText: EditingChunkText
-  isSaving: boolean
-  savingChunkId: string | null
-  showSourceDetails: boolean
-  onStartEditing: (chunk: RagDocumentChunk) => void
-  onCancelEditing: () => void
-  onChangeChunkText: (chunkId: string, value: string) => void
-  onSaveChunk: (chunkId: string) => void
-  onToggleSourceDetails: () => void
+  topic: DocumentTopicView;
+  editingChunkId: string | null;
+  editingChunkText: EditingChunkText;
+  isSaving: boolean;
+  savingChunkId: string | null;
+  showSourceDetails: boolean;
+  onStartEditing: (chunk: RagDocumentChunk) => void;
+  onCancelEditing: () => void;
+  onChangeChunkText: (chunkId: string, value: string) => void;
+  onSaveChunk: (chunkId: string) => void;
+  onToggleSourceDetails: () => void;
 }) {
-  const primaryChunk = topic.rawChunks[0] ?? null
+  const primaryChunk = topic.rawChunks[0] ?? null;
 
   return (
     <Card className="border-border/80">
@@ -393,7 +403,9 @@ function TopicDetailPanel({
           <div className="space-y-3">
             <CardTitle className="text-xl">{topic.title}</CardTitle>
             <div className="space-y-2">
-              <p className="text-sm leading-6 text-muted-foreground">{topic.summary}</p>
+              <p className="text-sm leading-6 text-muted-foreground">
+                {topic.summary}
+              </p>
               {topic.keywords.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {topic.keywords.map((keyword) => (
@@ -420,7 +432,12 @@ function TopicDetailPanel({
                 내용 수정
               </Button>
             ) : null}
-            <Button type="button" variant="outline" size="sm" onClick={onToggleSourceDetails}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onToggleSourceDetails}
+            >
               {showSourceDetails ? "원문 닫기" : "원문 보기"}
             </Button>
           </div>
@@ -431,29 +448,40 @@ function TopicDetailPanel({
         {topic.keywords.length > 0 ? (
           <section className="space-y-2">
             <h3 className="font-semibold text-foreground">키워드</h3>
-            <p className="text-sm text-muted-foreground">{topic.keywords.join(" / ")}</p>
+            <p className="text-sm text-muted-foreground">
+              {topic.keywords.join(" / ")}
+            </p>
           </section>
         ) : null}
 
         <section className="space-y-2">
-          <h3 className="font-semibold text-foreground">상담원이 답변할 내용</h3>
+          <h3 className="font-semibold text-foreground">
+            상담원이 답변할 내용
+          </h3>
           <div className="rounded-xl bg-muted/40 p-4 text-sm leading-6 text-foreground">
             {topic.answerText || "정리된 답변 내용이 없습니다."}
           </div>
         </section>
 
         <section className="space-y-2">
-          <h3 className="font-semibold text-foreground">고객이 이렇게 물어볼 수 있어요</h3>
+          <h3 className="font-semibold text-foreground">
+            고객이 이렇게 물어볼 수 있어요
+          </h3>
           {topic.exampleQuestions.length > 0 ? (
             <ul className="space-y-2 text-sm text-foreground">
               {topic.exampleQuestions.map((question) => (
-                <li key={question} className="rounded-lg border bg-background px-3 py-2">
+                <li
+                  key={question}
+                  className="rounded-lg border bg-background px-3 py-2"
+                >
                   - {question}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">예시 질문이 아직 없습니다.</p>
+            <p className="text-sm text-muted-foreground">
+              예시 질문이 아직 없습니다.
+            </p>
           )}
         </section>
 
@@ -469,12 +497,19 @@ function TopicDetailPanel({
             <h3 className="font-semibold text-foreground">내용 수정</h3>
             <Textarea
               value={editingChunkText[primaryChunk.id] ?? primaryChunk.content}
-              onChange={(event) => onChangeChunkText(primaryChunk.id, event.target.value)}
+              onChange={(event) =>
+                onChangeChunkText(primaryChunk.id, event.target.value)
+              }
               disabled={isSaving}
               className="min-h-40 resize-y bg-background"
             />
             <div className="flex flex-wrap justify-end gap-2">
-              <Button type="button" variant="ghost" size="sm" onClick={onCancelEditing}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onCancelEditing}
+              >
                 취소
               </Button>
               <Button
@@ -482,8 +517,11 @@ function TopicDetailPanel({
                 size="sm"
                 disabled={
                   isSaving ||
-                  !(editingChunkText[primaryChunk.id] ?? primaryChunk.content).trim() ||
-                  (editingChunkText[primaryChunk.id] ?? primaryChunk.content) === primaryChunk.content
+                  !(
+                    editingChunkText[primaryChunk.id] ?? primaryChunk.content
+                  ).trim() ||
+                  (editingChunkText[primaryChunk.id] ??
+                    primaryChunk.content) === primaryChunk.content
                 }
                 onClick={() => onSaveChunk(primaryChunk.id)}
                 className="gap-2"
@@ -499,25 +537,35 @@ function TopicDetailPanel({
 
         {showSourceDetails ? (
           <section className="space-y-3">
-            <h3 className="font-semibold text-foreground">원문에서 가져온 내용</h3>
+            <h3 className="font-semibold text-foreground">
+              원문에서 가져온 내용
+            </h3>
             {topic.rawChunks.map((rawChunk, index) => {
-              const isEditing = editingChunkId === rawChunk.id
-              const currentText = editingChunkText[rawChunk.id] ?? rawChunk.content
+              const isEditing = editingChunkId === rawChunk.id;
+              const currentText =
+                editingChunkText[rawChunk.id] ?? rawChunk.content;
               const canSave =
                 currentText.trim().length > 0 &&
                 currentText !== rawChunk.content &&
-                !isSaving
+                !isSaving;
 
               return (
-                <div key={rawChunk.id} className="rounded-xl border bg-background p-4">
+                <div
+                  key={rawChunk.id}
+                  className="rounded-xl border bg-background p-4"
+                >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="space-y-1">
-                      <p className="font-medium text-foreground">원문 항목 {index + 1}</p>
+                      <p className="font-medium text-foreground">
+                        원문 항목 {index + 1}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {typeof rawChunk.page_number === "number"
                           ? `출처 p.${rawChunk.page_number}`
                           : "출처 페이지 정보 없음"}
-                        {rawChunk.updated_at ? ` · 수정 ${formatDateTime(rawChunk.updated_at)}` : ""}
+                        {rawChunk.updated_at
+                          ? ` · 수정 ${formatDateTime(rawChunk.updated_at)}`
+                          : ""}
                       </p>
                     </div>
                     <Button
@@ -535,12 +583,19 @@ function TopicDetailPanel({
                     <div className="mt-3 space-y-3">
                       <Textarea
                         value={currentText}
-                        onChange={(event) => onChangeChunkText(rawChunk.id, event.target.value)}
+                        onChange={(event) =>
+                          onChangeChunkText(rawChunk.id, event.target.value)
+                        }
                         disabled={isSaving}
                         className="min-h-32 resize-y bg-background"
                       />
                       <div className="flex flex-wrap justify-end gap-2">
-                        <Button type="button" variant="ghost" size="sm" onClick={onCancelEditing}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={onCancelEditing}
+                        >
                           취소
                         </Button>
                         <Button
@@ -558,24 +613,26 @@ function TopicDetailPanel({
                       </div>
                     </div>
                   ) : (
-                    <p className="mt-3 text-sm leading-6 text-foreground">{rawChunk.content}</p>
+                    <p className="mt-3 text-sm leading-6 text-foreground">
+                      {rawChunk.content}
+                    </p>
                   )}
                 </div>
-              )
+              );
             })}
           </section>
         ) : null}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function QuestionsTab({
   topics,
   onTestQuestion,
 }: {
-  topics: DocumentTopicView[]
-  onTestQuestion: () => void
+  topics: DocumentTopicView[];
+  onTestQuestion: () => void;
 }) {
   return (
     <Card>
@@ -586,7 +643,12 @@ function QuestionsTab({
             고객이 자주 물어볼 만한 질문을 주제별로 정리했습니다.
           </CardDescription>
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={onTestQuestion}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onTestQuestion}
+        >
           질문 테스트
         </Button>
       </CardHeader>
@@ -606,7 +668,7 @@ function QuestionsTab({
         ))}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function DeleteDocumentDialog({
@@ -615,19 +677,23 @@ function DeleteDocumentDialog({
   onCancel,
   onConfirm,
 }: {
-  document: TenantDocument | null
-  isDeleting: boolean
-  onCancel: () => void
-  onConfirm: () => void
+  document: TenantDocument | null;
+  isDeleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
 }) {
   return (
-    <AlertDialog open={Boolean(document)} onOpenChange={(open) => !open && !isDeleting && onCancel()}>
+    <AlertDialog
+      open={Boolean(document)}
+      onOpenChange={(open) => !open && !isDeleting && onCancel()}
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>문서를 삭제할까요?</AlertDialogTitle>
           <AlertDialogDescription className="space-y-2">
             <span className="block">
-              "{document?.file_name ?? ""}" 문서를 삭제하면 AI 상담원이 더 이상 이 문서 내용을 참고하지 않습니다.
+              "{document?.file_name ?? ""}" 문서를 삭제하면 AI 상담원이 더 이상
+              이 문서 내용을 참고하지 않습니다.
             </span>
             <span className="block">이 작업은 되돌릴 수 없습니다.</span>
           </AlertDialogDescription>
@@ -644,268 +710,297 @@ function DeleteDocumentDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }
 
 export function KnowledgePage() {
-  const tenantId = useAuthStore((state) => state.tenant?.id)
-  const [isDragging, setIsDragging] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
-  const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(null)
-  const [documentToDelete, setDocumentToDelete] = useState<TenantDocument | null>(null)
-  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<KnowledgeTab>("topics")
-  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null)
-  const [searchKeyword, setSearchKeyword] = useState("")
-  const [editingChunkId, setEditingChunkId] = useState<string | null>(null)
-  const [editingChunkText, setEditingChunkText] = useState<EditingChunkText>({})
-  const [savingChunkId, setSavingChunkId] = useState<string | null>(null)
-  const [chunkError, setChunkError] = useState<string | null>(null)
-  const [sourceTopicId, setSourceTopicId] = useState<string | null>(null)
+  const tenantId = useAuthStore((state) => state.tenant?.id);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(
+    null,
+  );
+  const [documentToDelete, setDocumentToDelete] =
+    useState<TenantDocument | null>(null);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(
+    null,
+  );
+  const [activeTab, setActiveTab] = useState<KnowledgeTab>("topics");
+  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [editingChunkId, setEditingChunkId] = useState<string | null>(null);
+  const [editingChunkText, setEditingChunkText] = useState<EditingChunkText>(
+    {},
+  );
+  const [savingChunkId, setSavingChunkId] = useState<string | null>(null);
+  const [chunkError, setChunkError] = useState<string | null>(null);
+  const [sourceTopicId, setSourceTopicId] = useState<string | null>(null);
 
-  const documentsQuery = useTenantDocuments(tenantId, documentQueryParams)
-  const chunksQuery = useTenantDocumentChunks(tenantId, selectedDocumentId)
+  const documentsQuery = useTenantDocuments(tenantId, documentQueryParams);
+  const chunksQuery = useTenantDocumentChunks(tenantId, selectedDocumentId);
   const { mutateAsync: uploadDocument, isPending: isUploading } =
-    useUploadTenantDocument(tenantId)
-  const { mutateAsync: deleteDocument } = useDeleteTenantDocument(tenantId)
+    useUploadTenantDocument(tenantId);
+  const { mutateAsync: deleteDocument } = useDeleteTenantDocument(tenantId);
   const { mutateAsync: updateChunk, isPending: isUpdatingChunk } =
-    useUpdateTenantDocumentChunk(tenantId, selectedDocumentId)
+    useUpdateTenantDocumentChunk(tenantId, selectedDocumentId);
   const { mutateAsync: reindexDocument, isPending: isReindexingDocument } =
-    useReindexTenantDocument(tenantId, selectedDocumentId)
+    useReindexTenantDocument(tenantId, selectedDocumentId);
 
-  const documents = documentsQuery.data?.items ?? []
-  const totalDocuments = documentsQuery.data?.total ?? documents.length
+  const documents = documentsQuery.data?.items ?? [];
+  const totalDocuments = documentsQuery.data?.total ?? documents.length;
   const selectedDocument =
-    documents.find((document) => document.id === selectedDocumentId) ?? null
-  const chunks = chunksQuery.data?.items ?? []
-  const isUploadDisabled = !tenantId || isUploading
-  const isChunkMutationPending = isUpdatingChunk || isReindexingDocument
-  const topicViews = buildDocumentTopicViews(chunks)
-  const filteredTopics = topicViews.filter((topic) => matchesTopicSearch(topic, searchKeyword))
+    documents.find((document) => document.id === selectedDocumentId) ?? null;
+  const chunks = chunksQuery.data?.items ?? [];
+  const isUploadDisabled = !tenantId || isUploading;
+  const isChunkMutationPending = isUpdatingChunk || isReindexingDocument;
+  const topicViews = buildDocumentTopicViews(chunks);
+  const filteredTopics = topicViews.filter((topic) =>
+    matchesTopicSearch(topic, searchKeyword),
+  );
   const selectedTopic =
     filteredTopics.find((topic) => topic.id === selectedTopicId) ??
     filteredTopics[0] ??
-    null
-  const isDocumentReady = selectedDocument ? readyStatuses.has(selectedDocument.status) : false
-  const isFailedDocument = selectedDocument ? failedStatuses.has(selectedDocument.status) : false
-  const selectedDocumentTopicCount = selectedDocument ? topicViews.length : null
+    null;
+  const isDocumentReady = selectedDocument
+    ? readyStatuses.has(selectedDocument.status)
+    : false;
+  const isFailedDocument = selectedDocument
+    ? failedStatuses.has(selectedDocument.status)
+    : false;
+  const selectedDocumentTopicCount = selectedDocument
+    ? topicViews.length
+    : null;
 
   useEffect(() => {
     if (!selectedDocumentId) {
-      return
+      return;
     }
 
     if (!documents.some((document) => document.id === selectedDocumentId)) {
-      setSelectedDocumentId(null)
-      setSelectedTopicId(null)
-      setEditingChunkId(null)
-      setChunkError(null)
-      setSourceTopicId(null)
+      setSelectedDocumentId(null);
+      setSelectedTopicId(null);
+      setEditingChunkId(null);
+      setChunkError(null);
+      setSourceTopicId(null);
     }
-  }, [documents, selectedDocumentId])
+  }, [documents, selectedDocumentId]);
 
   useEffect(() => {
     if (filteredTopics.length === 0) {
       if (selectedTopicId) {
-        setSelectedTopicId(null)
+        setSelectedTopicId(null);
       }
-      return
+      return;
     }
 
-    if (!selectedTopicId || !filteredTopics.some((topic) => topic.id === selectedTopicId)) {
-      setSelectedTopicId(filteredTopics[0].id)
+    if (
+      !selectedTopicId ||
+      !filteredTopics.some((topic) => topic.id === selectedTopicId)
+    ) {
+      setSelectedTopicId(filteredTopics[0].id);
     }
-  }, [filteredTopics, selectedTopicId])
+  }, [filteredTopics, selectedTopicId]);
 
   useEffect(() => {
     if (!selectedTopic) {
-      setSourceTopicId(null)
-      return
+      setSourceTopicId(null);
+      return;
     }
 
     if (sourceTopicId && sourceTopicId !== selectedTopic.id) {
-      setSourceTopicId(null)
+      setSourceTopicId(null);
     }
-  }, [selectedTopic, sourceTopicId])
+  }, [selectedTopic, sourceTopicId]);
 
   const resetSheetState = useCallback((clearSelectedDocument: boolean) => {
     if (clearSelectedDocument) {
-      setSelectedDocumentId(null)
+      setSelectedDocumentId(null);
     }
-    setActiveTab("topics")
-    setSelectedTopicId(null)
-    setSearchKeyword("")
-    setEditingChunkId(null)
-    setEditingChunkText({})
-    setSavingChunkId(null)
-    setChunkError(null)
-    setSourceTopicId(null)
-  }, [])
+    setActiveTab("topics");
+    setSelectedTopicId(null);
+    setSearchKeyword("");
+    setEditingChunkId(null);
+    setEditingChunkText({});
+    setSavingChunkId(null);
+    setChunkError(null);
+    setSourceTopicId(null);
+  }, []);
 
   const uploadPdfFiles = useCallback(
     async (files: File[]) => {
-      setUploadError(null)
+      setUploadError(null);
 
       if (!tenantId) {
-        setUploadError("회사 정보를 확인한 뒤 문서를 업로드해 주세요.")
-        return
+        setUploadError("회사 정보를 확인한 뒤 문서를 업로드해 주세요.");
+        return;
       }
 
-      const pdfFiles = files.filter(isPdfFile)
+      const pdfFiles = files.filter(isPdfFile);
       if (pdfFiles.length === 0) {
-        setUploadError("PDF 파일만 업로드할 수 있습니다.")
-        return
+        setUploadError("PDF 파일만 업로드할 수 있습니다.");
+        return;
       }
 
       if (pdfFiles.length !== files.length) {
-        setUploadError("PDF가 아닌 파일은 제외했습니다.")
+        setUploadError("PDF가 아닌 파일은 제외했습니다.");
       }
 
       try {
-        await Promise.all(pdfFiles.map((file) => uploadDocument(file)))
+        await Promise.all(pdfFiles.map((file) => uploadDocument(file)));
       } catch (error) {
         setUploadError(
-          error instanceof Error ? error.message : "문서 업로드에 실패했습니다.",
-        )
+          error instanceof Error
+            ? error.message
+            : "문서 업로드에 실패했습니다.",
+        );
       }
     },
     [tenantId, uploadDocument],
-  )
+  );
 
   const handleDragOver = useCallback(
     (event: DragEvent<HTMLDivElement>) => {
-      event.preventDefault()
+      event.preventDefault();
       if (!isUploadDisabled) {
-        setIsDragging(true)
+        setIsDragging(true);
       }
     },
     [isUploadDisabled],
-  )
+  );
 
   const handleDragLeave = useCallback((event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    setIsDragging(false)
-  }, [])
+    event.preventDefault();
+    setIsDragging(false);
+  }, []);
 
   const handleDrop = useCallback(
     (event: DragEvent<HTMLDivElement>) => {
-      event.preventDefault()
-      setIsDragging(false)
+      event.preventDefault();
+      setIsDragging(false);
 
       if (isUploadDisabled) {
-        return
+        return;
       }
 
-      void uploadPdfFiles(Array.from(event.dataTransfer.files))
+      void uploadPdfFiles(Array.from(event.dataTransfer.files));
     },
     [isUploadDisabled, uploadPdfFiles],
-  )
+  );
 
   const handleFileSelect = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       if (isUploadDisabled) {
-        event.target.value = ""
-        return
+        event.target.value = "";
+        return;
       }
 
-      void uploadPdfFiles(Array.from(event.target.files || []))
-      event.target.value = ""
+      void uploadPdfFiles(Array.from(event.target.files || []));
+      event.target.value = "";
     },
     [isUploadDisabled, uploadPdfFiles],
-  )
+  );
 
   const handleRequestDelete = useCallback((document: TenantDocument) => {
-    setDeleteError(null)
-    setDocumentToDelete(document)
-  }, [])
+    setDeleteError(null);
+    setDocumentToDelete(document);
+  }, []);
 
   const handleConfirmDelete = useCallback(async () => {
     if (!tenantId || !documentToDelete) {
-      return
+      return;
     }
 
-    setDeleteError(null)
-    setDeletingDocumentId(documentToDelete.id)
+    setDeleteError(null);
+    setDeletingDocumentId(documentToDelete.id);
 
     try {
-      await deleteDocument(documentToDelete.id)
+      await deleteDocument(documentToDelete.id);
       if (selectedDocumentId === documentToDelete.id) {
-        resetSheetState(true)
+        resetSheetState(true);
       }
-      setDocumentToDelete(null)
+      setDocumentToDelete(null);
     } catch (error) {
       setDeleteError(
         error instanceof Error ? error.message : "문서를 삭제하지 못했습니다.",
-      )
+      );
     } finally {
-      setDeletingDocumentId(null)
+      setDeletingDocumentId(null);
     }
-  }, [deleteDocument, documentToDelete, resetSheetState, selectedDocumentId, tenantId])
+  }, [
+    deleteDocument,
+    documentToDelete,
+    resetSheetState,
+    selectedDocumentId,
+    tenantId,
+  ]);
 
   const handleOpenDocument = useCallback((document: TenantDocument) => {
-    setSelectedDocumentId(document.id)
-    setActiveTab("topics")
-    setSelectedTopicId(null)
-    setSearchKeyword("")
-    setEditingChunkId(null)
-    setEditingChunkText({})
-    setChunkError(null)
-    setSourceTopicId(null)
-  }, [])
+    setSelectedDocumentId(document.id);
+    setActiveTab("topics");
+    setSelectedTopicId(null);
+    setSearchKeyword("");
+    setEditingChunkId(null);
+    setEditingChunkText({});
+    setChunkError(null);
+    setSourceTopicId(null);
+  }, []);
 
-  const handleChangeChunkText = useCallback((chunkId: string, value: string) => {
-    setEditingChunkText((prev) => ({
-      ...prev,
-      [chunkId]: value,
-    }))
-  }, [])
+  const handleChangeChunkText = useCallback(
+    (chunkId: string, value: string) => {
+      setEditingChunkText((prev) => ({
+        ...prev,
+        [chunkId]: value,
+      }));
+    },
+    [],
+  );
 
   const handleStartEditingChunk = useCallback((chunk: RagDocumentChunk) => {
-    setEditingChunkId(chunk.id)
+    setEditingChunkId(chunk.id);
     setEditingChunkText((prev) => ({
       ...prev,
       [chunk.id]: prev[chunk.id] ?? chunk.content,
-    }))
-    setChunkError(null)
-  }, [])
+    }));
+    setChunkError(null);
+  }, []);
 
   const handleCancelEditing = useCallback(() => {
-    setEditingChunkId(null)
-    setChunkError(null)
-  }, [])
+    setEditingChunkId(null);
+    setChunkError(null);
+  }, []);
 
   const handleSaveChunk = useCallback(
     async (chunkId: string) => {
       if (!tenantId) {
-        setChunkError("회사 정보를 확인해 주세요.")
-        return
+        setChunkError("회사 정보를 확인해 주세요.");
+        return;
       }
 
       if (!selectedDocumentId) {
-        setChunkError("문서 정보를 확인할 수 없습니다.")
-        return
+        setChunkError("문서 정보를 확인할 수 없습니다.");
+        return;
       }
 
-      const chunk = chunks.find((item) => item.id === chunkId)
+      const chunk = chunks.find((item) => item.id === chunkId);
       if (!chunk) {
-        setChunkError("수정할 내용을 찾지 못했습니다.")
-        return
+        setChunkError("수정할 내용을 찾지 못했습니다.");
+        return;
       }
 
-      const nextContent = (editingChunkText[chunk.id] ?? chunk.content).trim()
+      const nextContent = (editingChunkText[chunk.id] ?? chunk.content).trim();
       if (!nextContent) {
-        setChunkError("답변 내용은 비워둘 수 없습니다.")
-        return
+        setChunkError("답변 내용은 비워둘 수 없습니다.");
+        return;
       }
 
       if (nextContent === chunk.content) {
-        setChunkError("변경된 내용이 없습니다.")
-        return
+        setChunkError("변경된 내용이 없습니다.");
+        return;
       }
 
-      setSavingChunkId(chunk.id)
-      setChunkError(null)
+      setSavingChunkId(chunk.id);
+      setChunkError(null);
 
       try {
         await updateChunk({
@@ -914,62 +1009,69 @@ export function KnowledgePage() {
             content: nextContent,
             metadata: chunk.metadata ?? {},
           },
-        })
+        });
       } catch (error) {
         setChunkError(
           error instanceof Error ? error.message : "내용 수정에 실패했습니다.",
-        )
-        setSavingChunkId(null)
-        return
+        );
+        setSavingChunkId(null);
+        return;
       }
 
       setEditingChunkText((prev) => ({
         ...prev,
         [chunk.id]: nextContent,
-      }))
+      }));
 
       try {
-        await reindexDocument()
-        setEditingChunkId(null)
-        toast.success("수정한 내용이 저장되었고 AI 상담 지식에 자동 반영 중입니다.")
+        await reindexDocument();
+        setEditingChunkId(null);
+        toast.success(
+          "수정한 내용이 저장되었고 AI 상담 지식에 자동 반영 중입니다.",
+        );
       } catch (error) {
         setChunkError(
           error instanceof Error
             ? error.message
             : "내용은 저장됐지만 자동 반영에 실패했습니다. 다시 시도해 주세요.",
-        )
+        );
       } finally {
-        setSavingChunkId(null)
+        setSavingChunkId(null);
       }
     },
-    [chunks, editingChunkText, reindexDocument, selectedDocumentId, tenantId, updateChunk],
-  )
+    [
+      chunks,
+      editingChunkText,
+      reindexDocument,
+      selectedDocumentId,
+      tenantId,
+      updateChunk,
+    ],
+  );
 
   const handleReindexDocument = useCallback(async () => {
     if (!tenantId || !selectedDocumentId) {
-      setChunkError("문서 정보를 확인할 수 없습니다.")
-      return
+      setChunkError("문서 정보를 확인할 수 없습니다.");
+      return;
     }
 
-    setChunkError(null)
+    setChunkError(null);
 
     try {
-      await reindexDocument()
-      toast.success("문서를 다시 처리하도록 요청했습니다.")
+      await reindexDocument();
+      toast.success("문서를 다시 처리하도록 요청했습니다.");
     } catch (error) {
       setChunkError(
-        error instanceof Error ? error.message : "문서 다시 처리 요청에 실패했습니다.",
-      )
+        error instanceof Error
+          ? error.message
+          : "문서 다시 처리 요청에 실패했습니다.",
+      );
     }
-  }, [reindexDocument, selectedDocumentId, tenantId])
+  }, [reindexDocument, selectedDocumentId, tenantId]);
 
   const handleQuestionTest = useCallback(() => {
-    toast.info("질문 테스트 기능은 준비 중입니다.")
-  }, [])
-
-  const handleDocumentTest = useCallback(() => {
-    toast.info("상담 응답 테스트 기능은 준비 중입니다.")
-  }, [])
+    toast.info("질문 테스트 기능은 준비 중입니다.");
+  }, []);
 
   return (
     <div className="space-y-6 p-6">
@@ -982,7 +1084,8 @@ export function KnowledgePage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">상담 지식 정리</h1>
           <p className="text-sm text-muted-foreground">
-            AI 상담원이 참고할 PDF 문서를 업로드하고, 주제별 상담 지식을 확인하고 다듬습니다.
+            AI 상담원이 참고할 PDF 문서를 업로드하고, 주제별 상담 지식을
+            확인하고 다듬습니다.
           </p>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -1003,7 +1106,8 @@ export function KnowledgePage() {
               PDF 문서 업로드
             </CardTitle>
             <CardDescription>
-              상담 매뉴얼, 운영 안내, 예약 규정 같은 문서를 업로드하면 AI 상담원이 참고할 지식으로 정리합니다.
+              상담 매뉴얼, 운영 안내, 예약 규정 같은 문서를 업로드하면 AI
+              상담원이 참고할 지식으로 정리합니다.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -1013,8 +1117,12 @@ export function KnowledgePage() {
               onDrop={handleDrop}
               className={cn(
                 "relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 transition-colors",
-                isDragging ? "border-primary bg-primary/5" : "border-border bg-background",
-                isUploadDisabled ? "cursor-not-allowed opacity-80" : "cursor-pointer",
+                isDragging
+                  ? "border-primary bg-primary/5"
+                  : "border-border bg-background",
+                isUploadDisabled
+                  ? "cursor-not-allowed opacity-80"
+                  : "cursor-pointer",
               )}
             >
               <div
@@ -1064,7 +1172,9 @@ export function KnowledgePage() {
               </p>
             </div>
 
-            {uploadError ? <p className="mt-3 text-sm text-red-600">{uploadError}</p> : null}
+            {uploadError ? (
+              <p className="mt-3 text-sm text-red-600">{uploadError}</p>
+            ) : null}
           </CardContent>
         </Card>
       </motion.div>
@@ -1082,7 +1192,9 @@ export function KnowledgePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {deleteError ? <p className="mb-3 text-sm text-red-600">{deleteError}</p> : null}
+            {deleteError ? (
+              <p className="mb-3 text-sm text-red-600">{deleteError}</p>
+            ) : null}
 
             <Table>
               <TableHeader>
@@ -1090,7 +1202,9 @@ export function KnowledgePage() {
                   <TableHead className="font-semibold">문서명</TableHead>
                   <TableHead className="font-semibold">등록일</TableHead>
                   <TableHead className="font-semibold">준비 상태</TableHead>
-                  <TableHead className="font-semibold">정리된 주제 수</TableHead>
+                  <TableHead className="font-semibold">
+                    정리된 주제 수
+                  </TableHead>
                   <TableHead className="font-semibold">내용 보기</TableHead>
                   <TableHead className="font-semibold">삭제</TableHead>
                 </TableRow>
@@ -1107,7 +1221,9 @@ export function KnowledgePage() {
                   </TableRow>
                 ) : null}
 
-                {tenantId && documentsQuery.isLoading ? <DocumentTableSkeleton /> : null}
+                {tenantId && documentsQuery.isLoading ? (
+                  <DocumentTableSkeleton />
+                ) : null}
 
                 {tenantId && documentsQuery.isError ? (
                   <TableRow>
@@ -1115,7 +1231,8 @@ export function KnowledgePage() {
                       colSpan={DOCUMENT_TABLE_COLUMN_COUNT}
                       className="h-24 text-center text-sm text-muted-foreground"
                     >
-                      문서 목록을 불러오지 못했습니다. {documentsQuery.error.message}
+                      문서 목록을 불러오지 못했습니다.{" "}
+                      {documentsQuery.error.message}
                     </TableCell>
                   </TableRow>
                 ) : null}
@@ -1160,7 +1277,7 @@ export function KnowledgePage() {
         open={Boolean(selectedDocumentId)}
         onOpenChange={(open) => {
           if (!open && !isChunkMutationPending) {
-            resetSheetState(true)
+            resetSheetState(true);
           }
         }}
       >
@@ -1169,9 +1286,12 @@ export function KnowledgePage() {
             <>
               <SheetHeader className="gap-4 border-b border-border px-6 pb-5">
                 <div className="pr-10">
-                  <SheetTitle className="text-xl">{selectedDocument.file_name}</SheetTitle>
+                  <SheetTitle className="text-xl">
+                    {selectedDocument.file_name}
+                  </SheetTitle>
                   <SheetDescription className="mt-1">
-                    AI 상담원이 참고할 수 있도록 문서 내용을 주제별로 정리했습니다.
+                    AI 상담원이 참고할 수 있도록 문서 내용을 주제별로
+                    정리했습니다.
                   </SheetDescription>
                 </div>
 
@@ -1189,7 +1309,11 @@ export function KnowledgePage() {
                   <span>주제 {topicViews.length}개</span>
                   <span>·</span>
                   <span>
-                    마지막 반영 {formatShortDate(selectedDocument.indexed_at ?? selectedDocument.uploaded_at)}
+                    마지막 반영{" "}
+                    {formatShortDate(
+                      selectedDocument.indexed_at ??
+                        selectedDocument.uploaded_at,
+                    )}
                   </span>
                 </div>
 
@@ -1204,9 +1328,6 @@ export function KnowledgePage() {
                       문서 다시 처리하기
                     </Button>
                   ) : null}
-                  <Button type="button" variant="outline" onClick={handleDocumentTest}>
-                    상담 응답 테스트
-                  </Button>
                 </div>
 
                 {chunkError ? (
@@ -1238,13 +1359,16 @@ export function KnowledgePage() {
                 ) : chunksQuery.isError ? (
                   <Card className="border-red-200 bg-red-50/70">
                     <CardContent className="p-6 text-sm text-red-800">
-                      문서 내용을 불러오지 못했습니다. {chunksQuery.error.message}
+                      문서 내용을 불러오지 못했습니다.{" "}
+                      {chunksQuery.error.message}
                     </CardContent>
                   </Card>
                 ) : (
                   <Tabs
                     value={activeTab}
-                    onValueChange={(value) => setActiveTab(value as KnowledgeTab)}
+                    onValueChange={(value) =>
+                      setActiveTab(value as KnowledgeTab)
+                    }
                     className="gap-4"
                   >
                     <TabsList className="grid h-auto w-full grid-cols-2 gap-2 rounded-xl bg-muted p-1">
@@ -1285,9 +1409,12 @@ export function KnowledgePage() {
                         <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
                           <Card className="border-border/80">
                             <CardHeader className="pb-3">
-                              <CardTitle className="text-base">주제 목록</CardTitle>
+                              <CardTitle className="text-base">
+                                주제 목록
+                              </CardTitle>
                               <CardDescription>
-                                이 문서에서 AI 상담원이 참고할 상담 지식을 모아봤습니다.
+                                이 문서에서 AI 상담원이 참고할 상담 지식을
+                                모아봤습니다.
                               </CardDescription>
                             </CardHeader>
                             <CardContent className="pt-0">
@@ -1297,7 +1424,9 @@ export function KnowledgePage() {
                                     <button
                                       key={topic.id}
                                       type="button"
-                                      onClick={() => setSelectedTopicId(topic.id)}
+                                      onClick={() =>
+                                        setSelectedTopicId(topic.id)
+                                      }
                                       className={cn(
                                         "w-full rounded-xl border p-4 text-left transition-colors",
                                         selectedTopic?.id === topic.id
@@ -1305,21 +1434,29 @@ export function KnowledgePage() {
                                           : "border-border bg-background hover:bg-muted/40",
                                       )}
                                     >
-                                      <p className="font-medium text-foreground">{topic.title}</p>
+                                      <p className="font-medium text-foreground">
+                                        {topic.title}
+                                      </p>
                                       <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">
                                         {topic.summary || topic.answerText}
                                       </p>
                                       {topic.keywords.length > 0 ? (
                                         <div className="mt-3 flex flex-wrap gap-2">
-                                          {topic.keywords.slice(0, 4).map((keyword) => (
-                                            <Badge key={`${topic.id}-${keyword}`} variant="outline">
-                                              {keyword}
-                                            </Badge>
-                                          ))}
+                                          {topic.keywords
+                                            .slice(0, 4)
+                                            .map((keyword) => (
+                                              <Badge
+                                                key={`${topic.id}-${keyword}`}
+                                                variant="outline"
+                                              >
+                                                {keyword}
+                                              </Badge>
+                                            ))}
                                         </div>
                                       ) : null}
                                       <p className="mt-3 text-xs text-muted-foreground">
-                                        출처 {formatPageLabel(topic.sourcePages)}
+                                        출처{" "}
+                                        {formatPageLabel(topic.sourcePages)}
                                       </p>
                                     </button>
                                   ))}
@@ -1335,14 +1472,20 @@ export function KnowledgePage() {
                               editingChunkText={editingChunkText}
                               isSaving={isChunkMutationPending}
                               savingChunkId={savingChunkId}
-                              showSourceDetails={sourceTopicId === selectedTopic.id}
+                              showSourceDetails={
+                                sourceTopicId === selectedTopic.id
+                              }
                               onStartEditing={handleStartEditingChunk}
                               onCancelEditing={handleCancelEditing}
                               onChangeChunkText={handleChangeChunkText}
-                              onSaveChunk={(chunkId) => void handleSaveChunk(chunkId)}
+                              onSaveChunk={(chunkId) =>
+                                void handleSaveChunk(chunkId)
+                              }
                               onToggleSourceDetails={() =>
                                 setSourceTopicId((prev) =>
-                                  prev === selectedTopic.id ? null : selectedTopic.id,
+                                  prev === selectedTopic.id
+                                    ? null
+                                    : selectedTopic.id,
                                 )
                               }
                             />
@@ -1371,7 +1514,10 @@ export function KnowledgePage() {
                           </CardContent>
                         </Card>
                       ) : (
-                        <QuestionsTab topics={filteredTopics} onTestQuestion={handleQuestionTest} />
+                        <QuestionsTab
+                          topics={filteredTopics}
+                          onTestQuestion={handleQuestionTest}
+                        />
                       )}
                     </TabsContent>
                   </Tabs>
@@ -1394,5 +1540,5 @@ export function KnowledgePage() {
         onConfirm={() => void handleConfirmDelete()}
       />
     </div>
-  )
+  );
 }
