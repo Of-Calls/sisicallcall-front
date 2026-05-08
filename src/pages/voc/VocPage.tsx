@@ -1,6 +1,6 @@
-import type { ReactNode } from "react"
-import { motion } from "framer-motion"
-import { BarChart3, Hash, TrendingUp } from "lucide-react"
+import type { ReactNode } from "react";
+import { motion } from "framer-motion";
+import { BarChart3, Hash, TrendingUp } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -10,282 +10,431 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from "recharts"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useDashboardStats } from "@/features/dashboard/dashboardQueries"
+} from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  CountChip,
+  EmptyShell,
+  PageShell,
+  PageTopbar,
+  SectionHeader,
+  StatusBadge,
+} from "@/components/dashboard/page-chrome";
+import { useDashboardStats } from "@/features/dashboard/dashboardQueries";
 import {
   useEmotionDistribution,
   useVocKeywordStats,
   useVocPriorityDistribution,
-} from "@/features/voc/vocQueries"
+} from "@/features/voc/vocQueries";
 import type {
   EmotionKey,
   VocKeywordStatsItem,
   VocPriorityDistributionItem,
-} from "@/features/voc/vocTypes"
+} from "@/features/voc/vocTypes";
 
+/* Token-mapped emotion colors (semantic-only, no decorative hues) */
 const emotionColors: Record<EmotionKey, string> = {
-  positive: "#10b981",
-  neutral: "#6b7280",
-  negative: "#f97316",
-  angry: "#ef4444",
-}
+  positive: "#15be53", // success
+  neutral: "#94a3b8", // ink-tertiary
+  negative: "#f96bee", // magenta accent
+  angry: "#ea2261", // error
+};
 
+/* Priority palette — uses semantic + warning + neutral */
 const priorityColors: Record<string, string> = {
-  critical: "#ef4444",
-  high: "#f97316",
-  medium: "#eab308",
-  low: "#22c55e",
-}
+  critical: "#ea2261",
+  high: "#9b6829",
+  medium: "#665efd",
+  low: "#15be53",
+  normal: "#94a3b8",
+};
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 12 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
     transition: {
-      delay: 0.1 * i,
-      duration: 0.5,
+      delay: 0.06 * i,
+      duration: 0.45,
       ease: [0.22, 1, 0.36, 1] as const,
     },
   }),
-}
+};
 
-function PendingAggregationCard({
-  title,
+/* ============================================================
+ * Chart shell — replaces shadcn Card with token-driven panel
+ * ============================================================ */
+function ChartCard({
   icon,
+  title,
+  children,
+  rightSlot,
 }: {
-  title: string
-  icon: ReactNode
+  icon: ReactNode;
+  title: string;
+  children: ReactNode;
+  rightSlot?: ReactNode;
 }) {
   return (
-    <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          {icon}
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed text-center text-sm text-muted-foreground">
-          백엔드 집계 API 연결 대기
+    <div
+      className="flex h-full flex-col overflow-hidden rounded-[12px]"
+      style={{
+        backgroundColor: "#ffffff",
+        border: "1px solid #e5edf5",
+        fontFamily: "var(--hds-font-body)",
+      }}
+    >
+      <div
+        className="flex items-start justify-between gap-3 px-5 py-4"
+        style={{ borderBottom: "1px solid #e5edf5" }}
+      >
+        <div className="flex items-center gap-2">
+          <span
+            className="flex h-7 w-7 items-center justify-center rounded-[6px]"
+            style={{
+              color: "#533afd",
+              backgroundColor: "rgba(83,58,253,0.08)",
+              border: "1px solid rgba(83,58,253,0.20)",
+            }}
+          >
+            {icon}
+          </span>
+          <h3
+            className="text-[15px] tracking-[-0.01em]"
+            style={{
+              color: "#061b31",
+              fontFamily: "var(--hds-font-display)",
+              fontWeight: 700,
+            }}
+          >
+            {title}
+          </h3>
         </div>
-      </CardContent>
-    </Card>
-  )
+        {rightSlot}
+      </div>
+      <div className="flex-1 px-5 py-4">{children}</div>
+    </div>
+  );
 }
 
-function EmptyAggregationCard({
+function PendingCard({ title, icon }: { title: string; icon: ReactNode }) {
+  return (
+    <ChartCard icon={icon} title={title}>
+      <EmptyShell height="h-[300px]">백엔드 집계 API 연결 대기</EmptyShell>
+    </ChartCard>
+  );
+}
+
+function EmptyCard({
   title,
   icon,
   message,
+  tone = "neutral",
 }: {
-  title: string
-  icon: ReactNode
-  message: string
+  title: string;
+  icon: ReactNode;
+  message: string;
+  tone?: "neutral" | "error";
 }) {
   return (
-    <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          {icon}
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed text-center text-sm text-muted-foreground">
-          {message}
-        </div>
-      </CardContent>
-    </Card>
-  )
+    <ChartCard icon={icon} title={title}>
+      <EmptyShell height="h-[300px]" tone={tone}>
+        {message}
+      </EmptyShell>
+    </ChartCard>
+  );
 }
 
+/* ============================================================
+ * Keyword stats (top-N list)
+ * ============================================================ */
 function KeywordStatsCard({ items }: { items: VocKeywordStatsItem[] }) {
+  const total = items.reduce((sum, item) => sum + item.count, 0);
+
   return (
-    <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Hash className="h-5 w-5 text-primary" aria-hidden="true" />
-          핵심 키워드 분석
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {items.map((item, index) => (
-          <motion.div
-            key={`${item.keyword}-${index}`}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.05 * index }}
-            className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
-          >
-            <div className="flex items-center gap-3">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                {index + 1}
-              </span>
-              <span className="text-sm font-medium">{item.keyword}</span>
-            </div>
-            <Badge variant="outline">{item.count.toLocaleString("ko-KR")}건</Badge>
-          </motion.div>
-        ))}
-      </CardContent>
-    </Card>
-  )
+    <ChartCard
+      icon={<Hash className="h-3.5 w-3.5" aria-hidden="true" />}
+      title="핵심 키워드 분석"
+      rightSlot={
+        <CountChip tone="primary">{total.toLocaleString("ko-KR")}건</CountChip>
+      }
+    >
+      <ul className="space-y-2">
+        {items.map((item, index) => {
+          const ratio = total > 0 ? item.count / total : 0;
+          return (
+            <motion.li
+              key={`${item.keyword}-${index}`}
+              initial={{ opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.04 * index, duration: 0.32 }}
+              className="rounded-[8px] p-3"
+              style={{
+                backgroundColor: "#ffffff",
+                border: "1px solid #e5edf5",
+                fontFamily: "var(--hds-font-body)",
+              }}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="hds-tnum flex h-6 w-6 shrink-0 items-center justify-center rounded-[4px] text-[11px]"
+                    style={{
+                      color: "#533afd",
+                      backgroundColor: "rgba(83,58,253,0.08)",
+                      border: "1px solid rgba(83,58,253,0.20)",
+                      fontFamily: "var(--hds-font-display)",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {index + 1}
+                  </span>
+                  <span
+                    className="text-[13px]"
+                    style={{ color: "#061b31", fontWeight: 600 }}
+                  >
+                    {item.keyword}
+                  </span>
+                </div>
+                <CountChip>{item.count.toLocaleString("ko-KR")}건</CountChip>
+              </div>
+              {/* mini ratio bar */}
+              <div
+                className="mt-2 h-1 w-full overflow-hidden rounded-[2px]"
+                style={{ backgroundColor: "#eef2f8" }}
+              >
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.max(2, ratio * 100)}%` }}
+                  transition={{ delay: 0.1 + index * 0.04, duration: 0.5 }}
+                  className="h-full rounded-[2px]"
+                  style={{ backgroundColor: "#533afd" }}
+                />
+              </div>
+            </motion.li>
+          );
+        })}
+      </ul>
+    </ChartCard>
+  );
 }
 
+/* ============================================================
+ * Priority distribution (vertical bar + tile grid)
+ * ============================================================ */
 function PriorityDistributionCard({
   items,
 }: {
-  items: VocPriorityDistributionItem[]
+  items: VocPriorityDistributionItem[];
 }) {
   return (
-    <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <BarChart3 className="h-5 w-5 text-primary" aria-hidden="true" />
-          우선순위 항목 분포
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="h-[220px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={items} layout="vertical">
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#e5e7eb"
-                horizontal={false}
-              />
-              <XAxis
-                type="number"
-                tick={{ fill: "#6b7280", fontSize: 12 }}
-                axisLine={{ stroke: "#e5e7eb" }}
-                allowDecimals={false}
-              />
-              <YAxis
-                type="category"
-                dataKey="label"
-                tick={{ fill: "#6b7280", fontSize: 12 }}
-                axisLine={{ stroke: "#e5e7eb" }}
-                width={70}
-              />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: "8px",
-                  border: "1px solid #e5e7eb",
-                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                }}
-                formatter={(value) => [`${value}건`, "통화"]}
-              />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                {items.map((item) => (
-                  <Cell
-                    key={item.priority}
-                    fill={priorityColors[item.priority] ?? "#64748b"}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+    <ChartCard
+      icon={<BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />}
+      title="우선순위 항목 분포"
+    >
+      <div className="h-[220px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={items} layout="vertical">
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#e5edf5"
+              horizontal={false}
+            />
+            <XAxis
+              type="number"
+              tick={{
+                fill: "#64748d",
+                fontSize: 11.5,
+                fontFamily: "var(--hds-font-body)",
+                fontWeight: 500,
+              }}
+              axisLine={{ stroke: "#e5edf5" }}
+              tickLine={{ stroke: "#e5edf5" }}
+              allowDecimals={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="label"
+              tick={{
+                fill: "#64748d",
+                fontSize: 11.5,
+                fontFamily: "var(--hds-font-body)",
+                fontWeight: 500,
+              }}
+              axisLine={{ stroke: "#e5edf5" }}
+              tickLine={false}
+              width={70}
+            />
+            <Tooltip
+              cursor={{ fill: "rgba(83,58,253,0.04)" }}
+              contentStyle={{
+                backgroundColor: "#ffffff",
+                border: "1px solid #e5edf5",
+                borderRadius: "8px",
+                boxShadow:
+                  "rgba(50,50,93,0.18) 0px 18px 30px -18px, rgba(0,0,0,0.08) 0px 10px 20px -10px",
+                fontSize: "12px",
+                fontFamily: "var(--hds-font-body)",
+                fontWeight: 500,
+                color: "#061b31",
+                padding: "8px 12px",
+              }}
+              labelStyle={{ color: "#273951", fontWeight: 600 }}
+              formatter={(value: number) => [
+                `${value.toLocaleString("ko-KR")}건`,
+                "통화",
+              ]}
+            />
+            <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20}>
+              {items.map((item) => (
+                <Cell
+                  key={item.priority}
+                  fill={priorityColors[item.priority] ?? "#94a3b8"}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          {items.map((item) => (
-            <div
-              key={item.priority}
-              className="rounded-lg border border-border p-3 text-sm"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <span className="font-medium text-foreground">{item.label}</span>
-                <Badge variant="outline">{item.count.toLocaleString("ko-KR")}건</Badge>
+      <div className="mt-6 grid gap-2.5 sm:grid-cols-2">
+        {items.map((item) => (
+          <div
+            key={item.priority}
+            className="rounded-[8px] p-3"
+            style={{
+              backgroundColor: "#ffffff",
+              border: "1px solid #e5edf5",
+            }}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{
+                    backgroundColor: priorityColors[item.priority] ?? "#94a3b8",
+                  }}
+                />
+                <span
+                  className="text-[13px]"
+                  style={{ color: "#061b31", fontWeight: 600 }}
+                >
+                  {item.label}
+                </span>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">{item.priority}</p>
+              <CountChip>{item.count.toLocaleString("ko-KR")}건</CountChip>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  )
+            <p
+              className="mt-1 text-[11px]"
+              style={{
+                color: "#94a3b8",
+                fontFamily: "var(--hds-font-mono)",
+                fontWeight: 500,
+              }}
+            >
+              {item.priority}
+            </p>
+          </div>
+        ))}
+      </div>
+    </ChartCard>
+  );
 }
 
+/* ============================================================
+ * Page
+ * ============================================================ */
 export function VocPage() {
-  const statsQuery = useDashboardStats()
-  const emotionQuery = useEmotionDistribution()
-  const keywordStatsQuery = useVocKeywordStats()
-  const priorityDistributionQuery = useVocPriorityDistribution()
+  const statsQuery = useDashboardStats();
+  const emotionQuery = useEmotionDistribution();
+  const keywordStatsQuery = useVocKeywordStats();
+  const priorityDistributionQuery = useVocPriorityDistribution();
 
-  const emotionData = emotionQuery.data ?? []
-  const analyzedCalls = emotionData.reduce((sum, item) => sum + item.value, 0)
-  const totalCalls = statsQuery.data?.totalCalls ?? null
+  const emotionData = emotionQuery.data ?? [];
+  const analyzedCalls = emotionData.reduce((sum, item) => sum + item.value, 0);
+  const totalCalls = statsQuery.data?.totalCalls ?? null;
   const isEmotionEmpty =
-    emotionData.length === 0 || emotionData.every((item) => item.value === 0)
+    emotionData.length === 0 || emotionData.every((item) => item.value === 0);
 
-  const keywordItems = keywordStatsQuery.data
-  const priorityItems = priorityDistributionQuery.data
-  const keywordStatsItems = Array.isArray(keywordItems) ? keywordItems : []
+  const keywordItems = keywordStatsQuery.data;
+  const priorityItems = priorityDistributionQuery.data;
+  const keywordStatsItems = Array.isArray(keywordItems) ? keywordItems : [];
   const priorityDistributionItems = Array.isArray(priorityItems)
     ? priorityItems
-    : []
-  const isKeywordPending = keywordItems === null
-  const isPriorityPending = priorityItems === null
-  const isKeywordEmpty = Array.isArray(keywordItems) && keywordItems.length === 0
+    : [];
+  const isKeywordPending = keywordItems === null;
+  const isPriorityPending = priorityItems === null;
+  const isKeywordEmpty =
+    Array.isArray(keywordItems) && keywordItems.length === 0;
   const isPriorityEmpty =
     Array.isArray(priorityItems) &&
-    (priorityItems.length === 0 || priorityItems.every((item) => item.count === 0))
+    (priorityItems.length === 0 ||
+      priorityItems.every((item) => item.count === 0));
+
+  const analyzedSummary =
+    totalCalls === null
+      ? `분석된 통화 ${analyzedCalls.toLocaleString("ko-KR")}건 기준`
+      : `분석된 통화 ${analyzedCalls.toLocaleString("ko-KR")}건 / 전체 통화 ${totalCalls.toLocaleString("ko-KR")}건`;
 
   return (
-    <div className="space-y-6 p-6">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="flex items-center justify-between"
-      >
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">VOC 분석</h1>
-          <p className="text-sm text-muted-foreground">
-            고객 통화 데이터에서 감정 분포와 집계 지표를 확인합니다.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <BarChart3 className="h-4 w-4" aria-hidden="true" />
-          <span>전체 집계 기준</span>
-        </div>
-      </motion.div>
+    <PageShell>
+      <PageTopbar
+        eyebrow="운영"
+        title="VOC 분석"
+        description="고객 통화 데이터에서 감정 분포와 집계 지표를 확인합니다."
+        rightSlot={
+          <CountChip tone="primary">
+            <BarChart3 className="h-3 w-3" aria-hidden="true" />
+            전체 집계 기준
+          </CountChip>
+        }
+      />
 
-      <motion.div
-        custom={0}
-        initial="hidden"
-        animate="visible"
-        variants={cardVariants}
-      >
-        <Card className="transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <TrendingUp className="h-5 w-5 text-primary" aria-hidden="true" />
-              고객 감정 분포
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+      <div className="space-y-6 px-8 py-6">
+        {/* Section: Emotion bar chart */}
+        <motion.section
+          custom={0}
+          initial="hidden"
+          animate="visible"
+          variants={cardVariants}
+          className="space-y-3"
+        >
+          <SectionHeader
+            eyebrow="감정 분포"
+            title="고객 감정 분석"
+            description="긍정·중립·부정·분노 4개 카테고리 분포"
+          />
+
+          <ChartCard
+            icon={<TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />}
+            title="고객 감정 분포"
+            rightSlot={
+              !emotionQuery.isLoading &&
+              !emotionQuery.isError &&
+              !isEmotionEmpty ? (
+                <CountChip>{analyzedSummary}</CountChip>
+              ) : null
+            }
+          >
             {emotionQuery.isLoading ? (
               <div className="space-y-4">
-                <Skeleton className="h-[300px] w-full rounded-lg" />
-                <Skeleton className="mx-auto h-5 w-72" />
+                <Skeleton className="h-[300px] w-full rounded-[8px]" />
               </div>
             ) : emotionQuery.isError ? (
-              <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+              <EmptyShell height="h-[300px]" tone="error">
                 감정 분포 집계를 불러오지 못했습니다.
-              </div>
+              </EmptyShell>
             ) : isEmotionEmpty ? (
               <div className="space-y-4">
-                <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+                <EmptyShell height="h-[300px]">
                   집계된 감정 분포가 없습니다.
-                </div>
-                <p className="text-center text-sm text-muted-foreground">
-                  {totalCalls === null
-                    ? `분석된 통화 ${analyzedCalls.toLocaleString("ko-KR")}건 기준`
-                    : `분석된 통화 ${analyzedCalls.toLocaleString("ko-KR")}건 / 전체 통화 ${totalCalls.toLocaleString("ko-KR")}건`}
+                </EmptyShell>
+                <p
+                  className="hds-tnum text-center text-[12.5px]"
+                  style={{ color: "#64748d", fontWeight: 500 }}
+                >
+                  {analyzedSummary}
                 </p>
               </div>
             ) : (
@@ -293,138 +442,184 @@ export function VocPage() {
                 <div className="h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={emotionData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5edf5" />
                       <XAxis
                         dataKey="name"
-                        tick={{ fill: "#6b7280", fontSize: 12 }}
-                        axisLine={{ stroke: "#e5e7eb" }}
+                        tick={{
+                          fill: "#64748d",
+                          fontSize: 12,
+                          fontFamily: "var(--hds-font-body)",
+                          fontWeight: 500,
+                        }}
+                        axisLine={{ stroke: "#e5edf5" }}
+                        tickLine={{ stroke: "#e5edf5" }}
                       />
                       <YAxis
-                        tick={{ fill: "#6b7280", fontSize: 12 }}
-                        axisLine={{ stroke: "#e5e7eb" }}
+                        tick={{
+                          fill: "#64748d",
+                          fontSize: 11.5,
+                          fontFamily: "var(--hds-font-body)",
+                          fontWeight: 500,
+                        }}
+                        axisLine={{ stroke: "#e5edf5" }}
+                        tickLine={{ stroke: "#e5edf5" }}
                         allowDecimals={false}
                       />
                       <Tooltip
+                        cursor={{ fill: "rgba(83,58,253,0.04)" }}
                         contentStyle={{
+                          backgroundColor: "#ffffff",
+                          border: "1px solid #e5edf5",
                           borderRadius: "8px",
-                          border: "1px solid #e5e7eb",
-                          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                          boxShadow:
+                            "rgba(50,50,93,0.18) 0px 18px 30px -18px, rgba(0,0,0,0.08) 0px 10px 20px -10px",
+                          fontSize: "12px",
+                          fontFamily: "var(--hds-font-body)",
+                          fontWeight: 500,
+                          color: "#061b31",
+                          padding: "8px 12px",
                         }}
-                        formatter={(value) => [`${value}건`, "통화"]}
+                        labelStyle={{ color: "#273951", fontWeight: 600 }}
+                        formatter={(value: number) => [
+                          `${value.toLocaleString("ko-KR")}건`,
+                          "통화",
+                        ]}
                       />
                       <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                         {emotionData.map((entry) => (
-                          <Cell key={entry.key} fill={emotionColors[entry.key]} />
+                          <Cell
+                            key={entry.key}
+                            fill={emotionColors[entry.key]}
+                          />
                         ))}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-6">
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
                   {emotionData.map((item) => (
                     <div key={item.key} className="flex items-center gap-2">
                       <div
-                        className="h-3 w-3 rounded-full"
+                        className="h-2.5 w-2.5 rounded-full"
                         style={{ backgroundColor: emotionColors[item.key] }}
                       />
-                      <span className="text-sm text-muted-foreground">
+                      <span
+                        className="text-[12.5px]"
+                        style={{ color: "#273951", fontWeight: 500 }}
+                      >
                         {item.name}
+                      </span>
+                      <span
+                        className="hds-tnum text-[12px]"
+                        style={{ color: "#64748d", fontWeight: 500 }}
+                      >
+                        {item.value.toLocaleString("ko-KR")}
                       </span>
                     </div>
                   ))}
                 </div>
-                <p className="mt-4 text-center text-sm text-muted-foreground">
-                  {totalCalls === null
-                    ? `분석된 통화 ${analyzedCalls.toLocaleString("ko-KR")}건 기준`
-                    : `분석된 통화 ${analyzedCalls.toLocaleString("ko-KR")}건 / 전체 통화 ${totalCalls.toLocaleString("ko-KR")}건`}
+                <p
+                  className="hds-tnum mt-4 text-center text-[12.5px]"
+                  style={{ color: "#64748d", fontWeight: 500 }}
+                >
+                  {analyzedSummary}
                 </p>
               </>
             )}
-          </CardContent>
-        </Card>
-      </motion.div>
+          </ChartCard>
+        </motion.section>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <motion.div
-          custom={1}
-          initial="hidden"
-          animate="visible"
-          variants={cardVariants}
-        >
-          {keywordStatsQuery.isLoading ? (
-            <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Hash className="h-5 w-5 text-primary" aria-hidden="true" />
-                  핵심 키워드 분석
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-[300px] w-full rounded-lg" />
-              </CardContent>
-            </Card>
-          ) : keywordStatsQuery.isError ? (
-            <EmptyAggregationCard
-              title="핵심 키워드 분석"
-              icon={<Hash className="h-5 w-5 text-primary" aria-hidden="true" />}
-              message={`키워드 집계를 불러오지 못했습니다. ${keywordStatsQuery.error.message}`}
-            />
-          ) : isKeywordPending ? (
-            <PendingAggregationCard
-              title="핵심 키워드 분석"
-              icon={<Hash className="h-5 w-5 text-primary" aria-hidden="true" />}
-            />
-          ) : isKeywordEmpty ? (
-            <EmptyAggregationCard
-              title="핵심 키워드 분석"
-              icon={<Hash className="h-5 w-5 text-primary" aria-hidden="true" />}
-              message="집계된 핵심 키워드가 없습니다."
-            />
-          ) : (
-            <KeywordStatsCard items={keywordStatsItems} />
-          )}
-        </motion.div>
+        {/* Section: keywords + priority */}
+        <section className="space-y-3">
+          <SectionHeader
+            eyebrow="집계 지표"
+            title="키워드 · 우선순위 분포"
+            description="자주 언급된 키워드와 우선순위별 통화 분포"
+          />
 
-        <motion.div
-          custom={2}
-          initial="hidden"
-          animate="visible"
-          variants={cardVariants}
-        >
-          {priorityDistributionQuery.isLoading ? (
-            <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <BarChart3 className="h-5 w-5 text-primary" aria-hidden="true" />
-                  우선순위 항목 분포
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-[300px] w-full rounded-lg" />
-              </CardContent>
-            </Card>
-          ) : priorityDistributionQuery.isError ? (
-            <EmptyAggregationCard
-              title="우선순위 항목 분포"
-              icon={<BarChart3 className="h-5 w-5 text-primary" aria-hidden="true" />}
-              message={`우선순위 분포 집계를 불러오지 못했습니다. ${priorityDistributionQuery.error.message}`}
-            />
-          ) : isPriorityPending ? (
-            <PendingAggregationCard
-              title="우선순위 항목 분포"
-              icon={<BarChart3 className="h-5 w-5 text-primary" aria-hidden="true" />}
-            />
-          ) : isPriorityEmpty ? (
-            <EmptyAggregationCard
-              title="우선순위 항목 분포"
-              icon={<BarChart3 className="h-5 w-5 text-primary" aria-hidden="true" />}
-              message="집계된 우선순위 항목이 없습니다."
-            />
-          ) : (
-            <PriorityDistributionCard items={priorityDistributionItems} />
-          )}
-        </motion.div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <motion.div
+              custom={1}
+              initial="hidden"
+              animate="visible"
+              variants={cardVariants}
+            >
+              {keywordStatsQuery.isLoading ? (
+                <ChartCard
+                  icon={<Hash className="h-3.5 w-3.5" aria-hidden="true" />}
+                  title="핵심 키워드 분석"
+                >
+                  <Skeleton className="h-[300px] w-full rounded-[8px]" />
+                </ChartCard>
+              ) : keywordStatsQuery.isError ? (
+                <EmptyCard
+                  title="핵심 키워드 분석"
+                  icon={<Hash className="h-3.5 w-3.5" aria-hidden="true" />}
+                  message={`키워드 집계를 불러오지 못했습니다. ${keywordStatsQuery.error.message}`}
+                  tone="error"
+                />
+              ) : isKeywordPending ? (
+                <PendingCard
+                  title="핵심 키워드 분석"
+                  icon={<Hash className="h-3.5 w-3.5" aria-hidden="true" />}
+                />
+              ) : isKeywordEmpty ? (
+                <EmptyCard
+                  title="핵심 키워드 분석"
+                  icon={<Hash className="h-3.5 w-3.5" aria-hidden="true" />}
+                  message="집계된 핵심 키워드가 없습니다."
+                />
+              ) : (
+                <KeywordStatsCard items={keywordStatsItems} />
+              )}
+            </motion.div>
+
+            <motion.div
+              custom={2}
+              initial="hidden"
+              animate="visible"
+              variants={cardVariants}
+            >
+              {priorityDistributionQuery.isLoading ? (
+                <ChartCard
+                  icon={
+                    <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />
+                  }
+                  title="우선순위 항목 분포"
+                >
+                  <Skeleton className="h-[300px] w-full rounded-[8px]" />
+                </ChartCard>
+              ) : priorityDistributionQuery.isError ? (
+                <EmptyCard
+                  title="우선순위 항목 분포"
+                  icon={
+                    <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />
+                  }
+                  message={`우선순위 분포 집계를 불러오지 못했습니다. ${priorityDistributionQuery.error.message}`}
+                  tone="error"
+                />
+              ) : isPriorityPending ? (
+                <PendingCard
+                  title="우선순위 항목 분포"
+                  icon={
+                    <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />
+                  }
+                />
+              ) : isPriorityEmpty ? (
+                <EmptyCard
+                  title="우선순위 항목 분포"
+                  icon={
+                    <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />
+                  }
+                  message="집계된 우선순위 항목이 없습니다."
+                />
+              ) : (
+                <PriorityDistributionCard items={priorityDistributionItems} />
+              )}
+            </motion.div>
+          </div>
+        </section>
       </div>
-    </div>
-  )
+    </PageShell>
+  );
 }

@@ -104,7 +104,7 @@ export function DashboardEntryActions({
         onClick={openInBrowser}
       >
         <Monitor className="h-4 w-4" aria-hidden="true" />
-        웹에서 보기
+        시작하기
       </Button>
       <Button
         type="button"
@@ -120,8 +120,7 @@ export function DashboardEntryActions({
         )}
         onClick={openAsApp}
       >
-        <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
-        앱으로 보기
+        <LayoutDashboard className="h-4 w-4" aria-hidden="true" />앱 설치
       </Button>
     </div>
   );
