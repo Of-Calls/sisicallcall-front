@@ -1,9 +1,9 @@
-import { useRef } from "react"
-import { Link } from "react-router-dom"
-import { motion, useInView } from "framer-motion"
+import { useRef } from "react";
+import { Link } from "react-router-dom";
+import { motion, useInView } from "framer-motion";
 
 const logoSrc =
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-F73u93gxOEnKoM0ShWO9oUBWEHDlnw.png"
+  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-F73u93gxOEnKoM0ShWO9oUBWEHDlnw.png";
 
 const footerLinks = {
   제품: [
@@ -23,21 +23,21 @@ const footerLinks = {
     { label: "개인정보처리방침", href: "#" },
     { label: "서비스수준협약", href: "#" },
   ],
-}
+};
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
+      staggerChildren: 0.08,
       delayChildren: 0.1,
     },
   },
-}
+};
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,
     y: 0,
@@ -46,51 +46,93 @@ const itemVariants = {
       ease: [0.22, 1, 0.36, 1] as const,
     },
   },
-}
+};
 
 export function Footer() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-50px" })
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   return (
-    <footer className="border-t border-border bg-background" ref={ref}>
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+    <footer
+      className="border-t border-[#e5edf5] bg-[#f6f9fc]"
+      ref={ref}
+      style={{ fontFamily: "var(--hds-font-body)" }}
+    >
+      <div className="mx-auto max-w-[1280px] px-6 py-14 lg:px-10 lg:py-16">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid gap-8 lg:grid-cols-4"
+          className="grid gap-10 lg:grid-cols-4 lg:gap-8"
         >
           <motion.div variants={itemVariants} className="lg:col-span-1">
-            <Link to="/" className="flex items-center gap-2">
-              <motion.div whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400 }}>
-                <img src={logoSrc} alt="시시콜콜 로고" width={32} height={32} className="rounded-lg" />
+            <Link to="/" className="flex items-center gap-2.5">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <img
+                  src={logoSrc}
+                  alt="시시콜콜 로고"
+                  width={32}
+                  height={32}
+                  className="rounded-[4px]"
+                  style={{ mixBlendMode: "multiply" }}
+                />
               </motion.div>
-              <span className="text-lg font-bold text-foreground">시시콜콜</span>
+              <span
+                className="text-[18px] tracking-[-0.014em] text-[#061b31]"
+                style={{
+                  fontFamily: "var(--hds-font-display)",
+                  fontWeight: 700,
+                }}
+              >
+                시시콜콜
+              </span>
             </Link>
-            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              모든 고객을 위한 하이브리드 AI 에이전트.
-              <br />
-              AI와 사람의 조화로 최상의 고객 경험을 제공합니다.
+            <p
+              className="mt-5 max-w-xs text-[14px] leading-[1.6] text-[#64748d]"
+              style={{ fontWeight: 500 }}
+            >
+              모든 고객을 위한 하이브리드 AI 에이전트. AI와 사람의 조화로 최상의
+              고객 경험을 제공합니다.
             </p>
+
+            {/* Status pill */}
+            <div
+              className="mt-6 inline-flex items-center gap-1.5 rounded-[4px] border border-[rgba(21,190,83,0.3)] bg-[rgba(21,190,83,0.12)] px-2.5 py-1 text-[12px] text-[#108c3d]"
+              style={{ fontWeight: 600 }}
+            >
+              <span
+                className="inline-flex h-1.5 w-1.5 animate-pulse rounded-full"
+                style={{ backgroundColor: "#15be53" }}
+              />
+              모든 시스템 정상 작동중
+            </div>
           </motion.div>
 
           {Object.entries(footerLinks).map(([category, links], idx) => (
             <motion.div key={category} variants={itemVariants}>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
+              <h3
+                className="text-[12px] uppercase tracking-[1px] text-[#273951]"
+                style={{ fontWeight: 700 }}
+              >
                 {category}
               </h3>
-              <ul className="mt-4 space-y-3">
+              <ul className="mt-5 space-y-3">
                 {links.map((link, linkIdx) => (
                   <motion.li
                     key={link.label}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
-                    transition={{ delay: 0.2 + idx * 0.1 + linkIdx * 0.05 }}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={
+                      isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -8 }
+                    }
+                    transition={{ delay: 0.2 + idx * 0.08 + linkIdx * 0.04 }}
                   >
                     <a
                       href={link.href}
-                      className="inline-block text-sm text-muted-foreground transition-colors duration-200 hover:translate-x-1 hover:text-foreground"
+                      className="inline-block text-[14px] text-[#64748d] transition-all duration-200 hover:translate-x-0.5 hover:text-[#533afd]"
+                      style={{ fontWeight: 500 }}
                     >
                       {link.label}
                     </a>
@@ -105,13 +147,22 @@ export function Footer() {
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : { opacity: 0 }}
           transition={{ delay: 0.5 }}
-          className="mt-12 border-t border-border pt-8"
+          className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-[#e5edf5] pt-7 sm:flex-row"
         >
-          <p className="text-center text-sm text-muted-foreground">
+          <p
+            className="hds-tnum text-[13px] text-[#64748d]"
+            style={{ fontWeight: 500 }}
+          >
             © {new Date().getFullYear()} 시시콜콜. All rights reserved.
+          </p>
+          <p
+            className="text-[12px] text-[#64748d]"
+            style={{ fontWeight: 500, letterSpacing: "0.2px" }}
+          >
+            Made in Seoul · 하이브리드 AI 에이전트
           </p>
         </motion.div>
       </div>
     </footer>
-  )
+  );
 }
