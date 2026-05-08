@@ -1,4 +1,10 @@
-export type RagDocumentStatus = "processing" | "ready" | "failed"
+export type RagDocumentStatus =
+  | "processing"
+  | "ready"
+  | "failed"
+  | "completed"
+  | "error"
+  | (string & {})
 
 export interface TenantDocument {
   id: string
@@ -10,6 +16,8 @@ export interface TenantDocument {
   chroma_collection?: string | null
   uploaded_at: string
   indexed_at: string | null
+  created_at?: string | null
+  updated_at?: string | null
 }
 
 export interface RagDocumentChunk {
@@ -22,7 +30,8 @@ export interface RagDocumentChunk {
   metadata: Record<string, unknown>
   embedding_status?: RagDocumentStatus
   chroma_id?: string | null
-  updated_at?: string
+  created_at?: string | null
+  updated_at?: string | null
 }
 
 export interface RagDocumentChunkApiResponse {
@@ -36,7 +45,8 @@ export interface RagDocumentChunkApiResponse {
   metadata: Record<string, unknown>
   embedding_status?: RagDocumentStatus
   chroma_id?: string | null
-  updated_at?: string
+  created_at?: string | null
+  updated_at?: string | null
 }
 
 export interface UpdateRagDocumentChunkRequest {

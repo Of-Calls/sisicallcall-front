@@ -53,7 +53,8 @@ function normalizeChunk(chunk: RagDocumentChunkApiResponse): RagDocumentChunk {
     metadata: chunk.metadata ?? {},
     embedding_status: chunk.embedding_status,
     chroma_id: chunk.chroma_id ?? null,
-    updated_at: chunk.updated_at,
+    created_at: chunk.created_at ?? null,
+    updated_at: chunk.updated_at ?? null,
   }
 }
 
