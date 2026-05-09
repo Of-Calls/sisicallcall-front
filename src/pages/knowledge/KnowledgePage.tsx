@@ -524,27 +524,21 @@ function TopicDetailPanel({
   editingChunkText,
   isSaving,
   savingChunkId,
-  showSourceDetails,
   onStartEditing,
   onCancelEditing,
   onChangeChunkText,
   onSaveChunk,
-  onToggleSourceDetails,
 }: {
   topic: DocumentTopicView;
   editingChunkId: string | null;
   editingChunkText: EditingChunkText;
   isSaving: boolean;
   savingChunkId: string | null;
-  showSourceDetails: boolean;
   onStartEditing: (chunk: RagDocumentChunk) => void;
   onCancelEditing: () => void;
   onChangeChunkText: (chunkId: string, value: string) => void;
   onSaveChunk: (chunkId: string) => void;
-  onToggleSourceDetails: () => void;
 }) {
-  const primaryChunk = topic.rawChunks[0] ?? null;
-
   return (
     <div
       className="overflow-hidden rounded-[12px]"
@@ -585,228 +579,102 @@ function TopicDetailPanel({
             </div>
           ) : null}
         </div>
-
-        <div className="flex flex-wrap gap-2">
-          {primaryChunk ? (
-            <HdsButton
-              variant="neutral"
-              disabled={isSaving}
-              onClick={() => onStartEditing(primaryChunk)}
-            >
-              <Pencil className="h-3 w-3" />
-              내용 수정
-            </HdsButton>
-          ) : null}
-          <HdsButton variant="ghost" onClick={onToggleSourceDetails}>
-            {showSourceDetails ? "원문 닫기" : "원문 보기"}
-          </HdsButton>
-        </div>
       </div>
 
       <div className="space-y-6 px-5 py-5">
-        <KnowledgeSection title="상담원이 답변할 내용">
-          <div
-            className="rounded-[8px] p-4 text-[13px] leading-[1.6]"
-            style={{
-              backgroundColor: "#f6f9fc",
-              border: "1px solid #e5edf5",
-              color: "#061b31",
-              fontWeight: 500,
-            }}
-          >
-            {topic.answerText || "정리된 답변 내용이 없습니다."}
-          </div>
-        </KnowledgeSection>
+        <KnowledgeSection title="문서 내용">
+          <div className="space-y-3">
+            {topic.rawChunks.map((rawChunk, index) => {
+              const isEditing = editingChunkId === rawChunk.id;
+              const currentText =
+                editingChunkText[rawChunk.id] ?? rawChunk.content;
+              const canSave =
+                currentText.trim().length > 0 &&
+                currentText !== rawChunk.content &&
+                !isSaving;
 
-        <KnowledgeSection title="고객이 이렇게 물어볼 수 있어요">
-          {topic.exampleQuestions.length > 0 ? (
-            <ul className="space-y-2">
-              {topic.exampleQuestions.map((question) => (
-                <li
-                  key={question}
-                  className="flex items-start gap-2 rounded-[6px] px-3 py-2 text-[13px] leading-[1.55]"
+              return (
+                <div
+                  key={rawChunk.id}
+                  className="rounded-[8px] p-4"
                   style={{
                     backgroundColor: "#ffffff",
                     border: "1px solid #e5edf5",
-                    color: "#273951",
-                    fontWeight: 500,
                   }}
                 >
-                  <span style={{ color: "#94a3b8" }}>—</span>
-                  <span>{question}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p
-              className="text-[12.5px]"
-              style={{ color: "#94a3b8", fontWeight: 500 }}
-            >
-              예시 질문이 아직 없습니다.
-            </p>
-          )}
-        </KnowledgeSection>
-
-        <KnowledgeSection title="관련 원문">
-          <p
-            className="hds-tnum text-[12.5px]"
-            style={{ color: "#64748d", fontWeight: 500 }}
-          >
-            {formatPageLabel(topic.sourcePages)}에서 가져온 내용
-          </p>
-        </KnowledgeSection>
-
-        {primaryChunk && editingChunkId === primaryChunk.id ? (
-          <div
-            className="space-y-3 rounded-[8px] p-4"
-            style={{
-              backgroundColor: "#ffffff",
-              border: "1px solid #d6d9fc",
-            }}
-          >
-            <h4
-              className="text-[13px]"
-              style={{
-                color: "#533afd",
-                fontFamily: "var(--hds-font-display)",
-                fontWeight: 700,
-              }}
-            >
-              내용 수정
-            </h4>
-            <Textarea
-              value={editingChunkText[primaryChunk.id] ?? primaryChunk.content}
-              onChange={(event) =>
-                onChangeChunkText(primaryChunk.id, event.target.value)
-              }
-              disabled={isSaving}
-              className="min-h-40 resize-y bg-white text-[13px]"
-              style={{
-                border: "1px solid #e5edf5",
-                color: "#061b31",
-                fontFamily: "var(--hds-font-body)",
-              }}
-            />
-            <div className="flex flex-wrap justify-end gap-2">
-              <HdsButton variant="ghost" onClick={onCancelEditing}>
-                취소
-              </HdsButton>
-              <HdsButton
-                variant="primary"
-                disabled={
-                  isSaving ||
-                  !(
-                    editingChunkText[primaryChunk.id] ?? primaryChunk.content
-                  ).trim() ||
-                  (editingChunkText[primaryChunk.id] ??
-                    primaryChunk.content) === primaryChunk.content
-                }
-                onClick={() => onSaveChunk(primaryChunk.id)}
-              >
-                {savingChunkId === primaryChunk.id ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : null}
-                저장
-              </HdsButton>
-            </div>
-          </div>
-        ) : null}
-
-        {showSourceDetails ? (
-          <KnowledgeSection title="원문에서 가져온 내용">
-            <div className="space-y-3">
-              {topic.rawChunks.map((rawChunk, index) => {
-                const isEditing = editingChunkId === rawChunk.id;
-                const currentText =
-                  editingChunkText[rawChunk.id] ?? rawChunk.content;
-                const canSave =
-                  currentText.trim().length > 0 &&
-                  currentText !== rawChunk.content &&
-                  !isSaving;
-
-                return (
-                  <div
-                    key={rawChunk.id}
-                    className="rounded-[8px] p-4"
-                    style={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #e5edf5",
-                    }}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="space-y-1">
-                        <p
-                          className="text-[12.5px]"
-                          style={{ color: "#061b31", fontWeight: 600 }}
-                        >
-                          원문 항목 {index + 1}
-                        </p>
-                        <p
-                          className="hds-tnum text-[11.5px]"
-                          style={{ color: "#94a3b8", fontWeight: 500 }}
-                        >
-                          {typeof rawChunk.page_number === "number"
-                            ? `출처 p.${rawChunk.page_number}`
-                            : "출처 페이지 정보 없음"}
-                          {rawChunk.updated_at
-                            ? ` · 수정 ${formatDateTime(rawChunk.updated_at)}`
-                            : ""}
-                        </p>
-                      </div>
-                      <HdsButton
-                        variant="neutral"
-                        disabled={isSaving}
-                        onClick={() => onStartEditing(rawChunk)}
-                      >
-                        이 항목 수정
-                      </HdsButton>
-                    </div>
-
-                    {isEditing ? (
-                      <div className="mt-3 space-y-3">
-                        <Textarea
-                          value={currentText}
-                          onChange={(event) =>
-                            onChangeChunkText(rawChunk.id, event.target.value)
-                          }
-                          disabled={isSaving}
-                          className="min-h-32 resize-y bg-white text-[13px]"
-                          style={{
-                            border: "1px solid #e5edf5",
-                            color: "#061b31",
-                            fontFamily: "var(--hds-font-body)",
-                          }}
-                        />
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <HdsButton variant="ghost" onClick={onCancelEditing}>
-                            취소
-                          </HdsButton>
-                          <HdsButton
-                            variant="primary"
-                            disabled={!canSave}
-                            onClick={() => onSaveChunk(rawChunk.id)}
-                          >
-                            {savingChunkId === rawChunk.id ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : null}
-                            저장
-                          </HdsButton>
-                        </div>
-                      </div>
-                    ) : (
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="space-y-1">
                       <p
-                        className="mt-3 text-[13px] leading-[1.6]"
-                        style={{ color: "#273951", fontWeight: 500 }}
+                        className="text-[12.5px]"
+                        style={{ color: "#061b31", fontWeight: 600 }}
                       >
-                        {rawChunk.content}
+                        원문 항목 {index + 1}
                       </p>
-                    )}
+                      <p
+                        className="hds-tnum text-[11.5px]"
+                        style={{ color: "#94a3b8", fontWeight: 500 }}
+                      >
+                        {typeof rawChunk.page_number === "number"
+                          ? `출처 p.${rawChunk.page_number}`
+                          : "출처 페이지 정보 없음"}
+                        {rawChunk.updated_at
+                          ? ` · 수정 ${formatDateTime(rawChunk.updated_at)}`
+                          : ""}
+                      </p>
+                    </div>
+                    <HdsButton
+                      variant="neutral"
+                      disabled={isSaving}
+                      onClick={() => onStartEditing(rawChunk)}
+                    >
+                      이 항목 수정
+                    </HdsButton>
                   </div>
-                );
-              })}
-            </div>
-          </KnowledgeSection>
-        ) : null}
+
+                  {isEditing ? (
+                    <div className="mt-3 space-y-3">
+                      <Textarea
+                        value={currentText}
+                        onChange={(event) =>
+                          onChangeChunkText(rawChunk.id, event.target.value)
+                        }
+                        disabled={isSaving}
+                        className="min-h-32 resize-y bg-white text-[13px]"
+                        style={{
+                          border: "1px solid #e5edf5",
+                          color: "#061b31",
+                          fontFamily: "var(--hds-font-body)",
+                        }}
+                      />
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <HdsButton variant="ghost" onClick={onCancelEditing}>
+                          취소
+                        </HdsButton>
+                        <HdsButton
+                          variant="primary"
+                          disabled={!canSave}
+                          onClick={() => onSaveChunk(rawChunk.id)}
+                        >
+                          {savingChunkId === rawChunk.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : null}
+                          저장
+                        </HdsButton>
+                      </div>
+                    </div>
+                  ) : (
+                    <p
+                      className="mt-3 text-[13px] leading-[1.6]"
+                      style={{ color: "#273951", fontWeight: 500 }}
+                    >
+                      {rawChunk.content}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </KnowledgeSection>
       </div>
     </div>
   );
@@ -1043,7 +911,6 @@ export function KnowledgePage() {
   );
   const [savingChunkId, setSavingChunkId] = useState<string | null>(null);
   const [chunkError, setChunkError] = useState<string | null>(null);
-  const [sourceTopicId, setSourceTopicId] = useState<string | null>(null);
 
   const documentsQuery = useTenantDocuments(tenantId, documentQueryParams);
   const chunksQuery = useTenantDocumentChunks(tenantId, selectedDocumentId);
@@ -1088,7 +955,6 @@ export function KnowledgePage() {
       setSelectedTopicId(null);
       setEditingChunkId(null);
       setChunkError(null);
-      setSourceTopicId(null);
     }
   }, [documents, selectedDocumentId]);
 
@@ -1105,16 +971,6 @@ export function KnowledgePage() {
     }
   }, [filteredTopics, selectedTopicId]);
 
-  useEffect(() => {
-    if (!selectedTopic) {
-      setSourceTopicId(null);
-      return;
-    }
-    if (sourceTopicId && sourceTopicId !== selectedTopic.id) {
-      setSourceTopicId(null);
-    }
-  }, [selectedTopic, sourceTopicId]);
-
   /* ────────────────── Handlers ────────────────── */
   const resetSheetState = useCallback((clearSelectedDocument: boolean) => {
     if (clearSelectedDocument) setSelectedDocumentId(null);
@@ -1125,7 +981,6 @@ export function KnowledgePage() {
     setEditingChunkText({});
     setSavingChunkId(null);
     setChunkError(null);
-    setSourceTopicId(null);
   }, []);
 
   const uploadPdfFiles = useCallback(
@@ -1227,7 +1082,6 @@ export function KnowledgePage() {
     setEditingChunkId(null);
     setEditingChunkText({});
     setChunkError(null);
-    setSourceTopicId(null);
   }, []);
 
   const handleChangeChunkText = useCallback(
@@ -2001,21 +1855,11 @@ export function KnowledgePage() {
                               editingChunkText={editingChunkText}
                               isSaving={isChunkMutationPending}
                               savingChunkId={savingChunkId}
-                              showSourceDetails={
-                                sourceTopicId === selectedTopic.id
-                              }
                               onStartEditing={handleStartEditingChunk}
                               onCancelEditing={handleCancelEditing}
                               onChangeChunkText={handleChangeChunkText}
                               onSaveChunk={(chunkId) =>
                                 void handleSaveChunk(chunkId)
-                              }
-                              onToggleSourceDetails={() =>
-                                setSourceTopicId((prev) =>
-                                  prev === selectedTopic.id
-                                    ? null
-                                    : selectedTopic.id,
-                                )
                               }
                             />
                           ) : (

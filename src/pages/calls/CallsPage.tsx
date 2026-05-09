@@ -99,8 +99,8 @@ function getStatusBadgeTone(
   }
 }
 
-/* MCP action type → token tone (we drop ad-hoc colors per the spec) */
-function getMcpActionBadgeTone(
+/* MCP provider → token tone (we drop ad-hoc colors per the spec) */
+function getMcpProviderBadgeTone(
   actionType: string,
 ): "info" | "success" | "warning" | "error" | "neutral" {
   switch (actionType) {
@@ -115,10 +115,28 @@ function getMcpActionBadgeTone(
   }
 }
 
+/* MCP provider key → human-friendly label (사용자에게 보여주는 이름) */
+function getMcpProviderLabel(actionType: string): string {
+  switch (actionType) {
+    case "gmail":
+      return "Gmail";
+    case "calendar":
+      return "Google Calendar";
+    case "company_db":
+      return "사내 DB";
+    default:
+      return actionType;
+  }
+}
+
 function getMcpStatusTone(
   status: McpActionStatus | string,
 ): "success" | "error" {
   return status === "success" ? "success" : "error";
+}
+
+function getMcpStatusLabel(status: McpActionStatus | string): string {
+  return status === "success" ? "성공" : "실패";
 }
 
 function CallsTableSkeleton() {
@@ -135,10 +153,6 @@ function CallsTableSkeleton() {
       ))}
     </>
   );
-}
-
-function formatJsonPayload(payload: Record<string, unknown>) {
-  return JSON.stringify(payload ?? {}, null, 2);
 }
 
 /* ============================================================
@@ -196,7 +210,7 @@ function McpActionLogsSection({
       ) : (
         <div className="space-y-3">
           {actions.map((action) => {
-            const actionLabel = action.action_detail ?? action.action_type;
+            const providerLabel = getMcpProviderLabel(action.action_type);
 
             return (
               <div
@@ -208,11 +222,11 @@ function McpActionLogsSection({
                 }}
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge tone={getMcpActionBadgeTone(actionLabel)}>
-                    {actionLabel}
+                  <StatusBadge tone={getMcpProviderBadgeTone(action.action_type)}>
+                    {providerLabel}
                   </StatusBadge>
                   <StatusBadge tone={getMcpStatusTone(action.status)}>
-                    {action.status}
+                    {getMcpStatusLabel(action.status)}
                   </StatusBadge>
                   <span
                     className="hds-tnum ml-auto text-[11.5px]"
@@ -222,14 +236,7 @@ function McpActionLogsSection({
                   </span>
                 </div>
 
-                <p
-                  className="mt-2 text-[13px] leading-[1.55]"
-                  style={{ color: "#273951", fontWeight: 500 }}
-                >
-                  {action.action_detail ?? "액션 상세 정보가 없습니다."}
-                </p>
-
-                {action.error_message ? (
+                {action.status !== "success" && action.error_message ? (
                   <p
                     className="mt-2 rounded-[6px] px-3 py-2 text-[12.5px]"
                     style={{
@@ -242,65 +249,6 @@ function McpActionLogsSection({
                     {action.error_message}
                   </p>
                 ) : null}
-
-                <div className="mt-3 space-y-2">
-                  <details
-                    className="rounded-[6px] px-3 py-2"
-                    style={{
-                      backgroundColor: "#f6f9fc",
-                      border: "1px solid #e5edf5",
-                    }}
-                  >
-                    <summary
-                      className="cursor-pointer text-[11.5px] uppercase"
-                      style={{
-                        color: "#64748d",
-                        fontWeight: 600,
-                        letterSpacing: "0.4px",
-                        fontFamily: "var(--hds-font-mono)",
-                      }}
-                    >
-                      request_payload
-                    </summary>
-                    <pre
-                      className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words text-[11.5px]"
-                      style={{
-                        color: "#273951",
-                        fontFamily: "var(--hds-font-mono)",
-                      }}
-                    >
-                      {formatJsonPayload(action.request_payload)}
-                    </pre>
-                  </details>
-                  <details
-                    className="rounded-[6px] px-3 py-2"
-                    style={{
-                      backgroundColor: "#f6f9fc",
-                      border: "1px solid #e5edf5",
-                    }}
-                  >
-                    <summary
-                      className="cursor-pointer text-[11.5px] uppercase"
-                      style={{
-                        color: "#64748d",
-                        fontWeight: 600,
-                        letterSpacing: "0.4px",
-                        fontFamily: "var(--hds-font-mono)",
-                      }}
-                    >
-                      response_payload
-                    </summary>
-                    <pre
-                      className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words text-[11.5px]"
-                      style={{
-                        color: "#273951",
-                        fontFamily: "var(--hds-font-mono)",
-                      }}
-                    >
-                      {formatJsonPayload(action.response_payload)}
-                    </pre>
-                  </details>
-                </div>
               </div>
             );
           })}
