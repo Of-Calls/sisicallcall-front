@@ -4,8 +4,9 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   AlertCircle,
-  ArrowRight,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   FileText,
   FileUp,
   Loader2,
@@ -35,7 +36,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
   CountChip,
@@ -58,9 +58,10 @@ import type {
 } from "@/features/documents/documentTypes";
 import { cn } from "@/lib/utils";
 import {
-  buildDocumentTopicViews,
+  buildChunkView,
+  buildDocumentPageViews,
   documentStatusLabelMap,
-  type DocumentTopicView,
+  type DocumentPageView,
 } from "@/pages/knowledge/knowledgeViewModels";
 import { useAuthStore } from "@/shared/auth/authStore";
 
@@ -73,7 +74,6 @@ const DOCUMENT_TABLE_COLUMN_COUNT = 6;
 const readyStatuses = new Set(["ready", "completed"]);
 const failedStatuses = new Set(["failed", "error"]);
 
-type KnowledgeTab = "topics" | "questions";
 type EditingChunkText = Record<string, string>;
 type StatusTone = "info" | "success" | "warning" | "error" | "neutral";
 
@@ -148,27 +148,13 @@ function formatShortDate(value: string | null | undefined) {
   });
 }
 
-function formatPageLabel(sourcePages: number[]) {
-  if (sourcePages.length === 0) return "페이지 정보 없음";
-  return sourcePages.map((page) => `p.${page}`).join(", ");
-}
-
-function matchesTopicSearch(topic: DocumentTopicView, keyword: string) {
+function matchesPageSearch(page: DocumentPageView, keyword: string) {
   const normalizedKeyword = keyword.trim().toLowerCase();
   if (!normalizedKeyword) return true;
-  const searchableText = [
-    topic.title,
-    topic.summary,
-    topic.answerText,
-    ...topic.keywords,
-    ...topic.exampleQuestions,
-  ]
-    .join("\n")
-    .toLowerCase();
-  return searchableText.includes(normalizedKeyword);
+  return page.searchableText.includes(normalizedKeyword);
 }
 
-function getTopicCountLabel(count: number | null | undefined) {
+function getCountLabel(count: number | null | undefined) {
   if (typeof count !== "number") return "-";
   return count.toLocaleString("ko-KR");
 }
@@ -311,7 +297,7 @@ function DocumentTableSkeleton() {
   );
 }
 
-function TopicListSkeleton() {
+function PageListSkeleton() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 6 }).map((_, index) => (
@@ -418,7 +404,7 @@ function SheetStatusNotice({
  * ============================================================ */
 function DocumentRow({
   document,
-  topicCount,
+  chunkCount,
   isSelected,
   isDeleting,
   isActionDisabled,
@@ -426,7 +412,7 @@ function DocumentRow({
   onDelete,
 }: {
   document: TenantDocument;
-  topicCount: number | null;
+  chunkCount: number | null;
   isSelected: boolean;
   isDeleting: boolean;
   isActionDisabled: boolean;
@@ -485,7 +471,7 @@ function DocumentRow({
         className="hds-tnum px-4 py-3 text-[13px]"
         style={{ color: "#273951", fontWeight: 500 }}
       >
-        {getTopicCountLabel(topicCount)}
+        {getCountLabel(chunkCount)}
       </td>
       <td className="px-4 py-3">
         <HdsButton
@@ -518,8 +504,8 @@ function DocumentRow({
 /* ============================================================
  * Topic detail panel (right side of sheet body)
  * ============================================================ */
-function TopicDetailPanel({
-  topic,
+function PageDetailPanel({
+  page,
   editingChunkId,
   editingChunkText,
   isSaving,
@@ -529,7 +515,7 @@ function TopicDetailPanel({
   onChangeChunkText,
   onSaveChunk,
 }: {
-  topic: DocumentTopicView;
+  page: DocumentPageView;
   editingChunkId: string | null;
   editingChunkText: EditingChunkText;
   isSaving: boolean;
@@ -539,6 +525,29 @@ function TopicDetailPanel({
   onChangeChunkText: (chunkId: string, value: string) => void;
   onSaveChunk: (chunkId: string) => void;
 }) {
+  const [expandedChunkIds, setExpandedChunkIds] = useState<Set<string>>(
+    new Set(),
+  );
+
+  useEffect(() => {
+    if (!editingChunkId) return;
+    setExpandedChunkIds((prev) => {
+      if (prev.has(editingChunkId)) return prev;
+      const next = new Set(prev);
+      next.add(editingChunkId);
+      return next;
+    });
+  }, [editingChunkId]);
+
+  const toggleChunk = (chunkId: string) => {
+    setExpandedChunkIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(chunkId)) next.delete(chunkId);
+      else next.add(chunkId);
+      return next;
+    });
+  };
+
   return (
     <div
       className="overflow-hidden rounded-[12px]"
@@ -548,44 +557,14 @@ function TopicDetailPanel({
         fontFamily: "var(--hds-font-body)",
       }}
     >
-      <div
-        className="flex flex-wrap items-start justify-between gap-3 px-5 py-4"
-        style={{ borderBottom: "1px solid #e5edf5" }}
-      >
-        <div className="flex-1 space-y-2.5">
-          <h3
-            className="text-[18px] tracking-[-0.014em]"
-            style={{
-              color: "#061b31",
-              fontFamily: "var(--hds-font-display)",
-              fontWeight: 700,
-            }}
-          >
-            {topic.title}
-          </h3>
-          <p
-            className="text-[13px] leading-[1.55]"
-            style={{ color: "#64748d", fontWeight: 500 }}
-          >
-            {topic.summary}
-          </p>
-          {topic.keywords.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5">
-              {topic.keywords.map((keyword) => (
-                <StatusBadge key={keyword} tone="info">
-                  {keyword}
-                </StatusBadge>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="space-y-6 px-5 py-5">
+      <div className="px-5 py-5">
         <KnowledgeSection title="문서 내용">
           <div className="space-y-3">
-            {topic.rawChunks.map((rawChunk, index) => {
+            {page.rawChunks.map((rawChunk, index) => {
               const isEditing = editingChunkId === rawChunk.id;
+              const isExpanded =
+                expandedChunkIds.has(rawChunk.id) || isEditing;
+              const chunkView = buildChunkView(rawChunk, index);
               const currentText =
                 editingChunkText[rawChunk.id] ?? rawChunk.content;
               const canSave =
@@ -596,32 +575,64 @@ function TopicDetailPanel({
               return (
                 <div
                   key={rawChunk.id}
-                  className="rounded-[8px] p-4"
+                  className="rounded-[8px]"
                   style={{
                     backgroundColor: "#ffffff",
                     border: "1px solid #e5edf5",
                   }}
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="space-y-1">
+                  <div className="space-y-2 px-4 pt-4">
+                    <h4
+                      className="text-[14px] tracking-[-0.008em]"
+                      style={{
+                        color: "#061b31",
+                        fontFamily: "var(--hds-font-display)",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {chunkView.title}
+                    </h4>
+                    {chunkView.summary ? (
                       <p
-                        className="text-[12.5px]"
-                        style={{ color: "#061b31", fontWeight: 600 }}
+                        className="text-[12.5px] leading-[1.55]"
+                        style={{ color: "#64748d", fontWeight: 500 }}
                       >
-                        원문 항목 {index + 1}
+                        {chunkView.summary}
                       </p>
-                      <p
-                        className="hds-tnum text-[11.5px]"
-                        style={{ color: "#94a3b8", fontWeight: 500 }}
-                      >
-                        {typeof rawChunk.page_number === "number"
-                          ? `출처 p.${rawChunk.page_number}`
-                          : "출처 페이지 정보 없음"}
-                        {rawChunk.updated_at
-                          ? ` · 수정 ${formatDateTime(rawChunk.updated_at)}`
-                          : ""}
-                      </p>
-                    </div>
+                    ) : null}
+                    {chunkView.keywords.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {chunkView.keywords.map((keyword) => (
+                          <span
+                            key={`${rawChunk.id}-${keyword}`}
+                            className="rounded-[3px] px-1.5 py-0.5 text-[10.5px]"
+                            style={{
+                              color: "#64748d",
+                              backgroundColor: "#f6f9fc",
+                              border: "1px solid #e5edf5",
+                              fontWeight: 500,
+                            }}
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-3">
+                    <p
+                      className="hds-tnum text-[11.5px]"
+                      style={{ color: "#94a3b8", fontWeight: 500 }}
+                    >
+                      원문 항목 {index + 1}
+                      {typeof rawChunk.page_number === "number"
+                        ? ` · 출처 p.${rawChunk.page_number}`
+                        : ""}
+                      {rawChunk.updated_at
+                        ? ` · 수정 ${formatDateTime(rawChunk.updated_at)}`
+                        : ""}
+                    </p>
                     <HdsButton
                       variant="neutral"
                       disabled={isSaving}
@@ -631,44 +642,82 @@ function TopicDetailPanel({
                     </HdsButton>
                   </div>
 
-                  {isEditing ? (
-                    <div className="mt-3 space-y-3">
-                      <Textarea
-                        value={currentText}
-                        onChange={(event) =>
-                          onChangeChunkText(rawChunk.id, event.target.value)
-                        }
-                        disabled={isSaving}
-                        className="min-h-32 resize-y bg-white text-[13px]"
-                        style={{
-                          border: "1px solid #e5edf5",
-                          color: "#061b31",
-                          fontFamily: "var(--hds-font-body)",
-                        }}
-                      />
-                      <div className="flex flex-wrap justify-end gap-2">
-                        <HdsButton variant="ghost" onClick={onCancelEditing}>
-                          취소
-                        </HdsButton>
-                        <HdsButton
-                          variant="primary"
-                          disabled={!canSave}
-                          onClick={() => onSaveChunk(rawChunk.id)}
+                  <div className="px-4 pt-3">
+                    <button
+                      type="button"
+                      onClick={() => toggleChunk(rawChunk.id)}
+                      disabled={isEditing}
+                      className="inline-flex items-center gap-1 text-[12.5px] transition-colors"
+                      style={{
+                        color: isEditing ? "#94a3b8" : "#533afd",
+                        fontWeight: 600,
+                        cursor: isEditing ? "not-allowed" : "pointer",
+                        background: "transparent",
+                        border: "none",
+                        padding: 0,
+                      }}
+                    >
+                      {isExpanded ? (
+                        <>
+                          <ChevronUp className="h-3.5 w-3.5" />
+                          본문 접기
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="h-3.5 w-3.5" />
+                          본문 펼치기
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {isExpanded ? (
+                    <div className="px-4 pb-4 pt-3">
+                      {isEditing ? (
+                        <div className="space-y-3">
+                          <Textarea
+                            value={currentText}
+                            onChange={(event) =>
+                              onChangeChunkText(rawChunk.id, event.target.value)
+                            }
+                            disabled={isSaving}
+                            className="min-h-32 resize-y bg-white text-[13px]"
+                            style={{
+                              border: "1px solid #e5edf5",
+                              color: "#061b31",
+                              fontFamily: "var(--hds-font-body)",
+                            }}
+                          />
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <HdsButton
+                              variant="ghost"
+                              onClick={onCancelEditing}
+                            >
+                              취소
+                            </HdsButton>
+                            <HdsButton
+                              variant="primary"
+                              disabled={!canSave}
+                              onClick={() => onSaveChunk(rawChunk.id)}
+                            >
+                              {savingChunkId === rawChunk.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : null}
+                              저장
+                            </HdsButton>
+                          </div>
+                        </div>
+                      ) : (
+                        <p
+                          className="text-[13px] leading-[1.6]"
+                          style={{ color: "#273951", fontWeight: 500 }}
                         >
-                          {savingChunkId === rawChunk.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : null}
-                          저장
-                        </HdsButton>
-                      </div>
+                          {rawChunk.content}
+                        </p>
+                      )}
                     </div>
                   ) : (
-                    <p
-                      className="mt-3 text-[13px] leading-[1.6]"
-                      style={{ color: "#273951", fontWeight: 500 }}
-                    >
-                      {rawChunk.content}
-                    </p>
+                    <div className="pb-4" />
                   )}
                 </div>
               );
@@ -701,99 +750,6 @@ function KnowledgeSection({
       </h4>
       {children}
     </section>
-  );
-}
-
-/* ============================================================
- * Questions tab
- * ============================================================ */
-function QuestionsTab({
-  topics,
-  onTestQuestion,
-}: {
-  topics: DocumentTopicView[];
-  onTestQuestion: () => void;
-}) {
-  return (
-    <div
-      className="overflow-hidden rounded-[12px]"
-      style={{
-        backgroundColor: "#ffffff",
-        border: "1px solid #e5edf5",
-        fontFamily: "var(--hds-font-body)",
-      }}
-    >
-      <div
-        className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
-        style={{ borderBottom: "1px solid #e5edf5" }}
-      >
-        <div>
-          <h3
-            className="text-[15px] tracking-[-0.01em]"
-            style={{
-              color: "#061b31",
-              fontFamily: "var(--hds-font-display)",
-              fontWeight: 700,
-            }}
-          >
-            이 문서로 답변 가능한 질문
-          </h3>
-          <p
-            className="mt-0.5 text-[12.5px]"
-            style={{ color: "#64748d", fontWeight: 500 }}
-          >
-            고객이 자주 물어볼 만한 질문을 주제별로 정리했습니다.
-          </p>
-        </div>
-        <HdsButton variant="neutral" onClick={onTestQuestion}>
-          질문 테스트
-          <ArrowRight className="h-3 w-3" />
-        </HdsButton>
-      </div>
-      <div className="space-y-3 px-5 py-5">
-        {topics.map((topic) => (
-          <div
-            key={topic.id}
-            className="rounded-[8px] p-4"
-            style={{
-              backgroundColor: "#ffffff",
-              border: "1px solid #e5edf5",
-            }}
-          >
-            <div className="space-y-1">
-              <p
-                className="text-[14px] tracking-[-0.008em]"
-                style={{
-                  color: "#061b31",
-                  fontFamily: "var(--hds-font-display)",
-                  fontWeight: 700,
-                }}
-              >
-                {topic.title}
-              </p>
-              <p
-                className="text-[12.5px] leading-[1.55]"
-                style={{ color: "#64748d", fontWeight: 500 }}
-              >
-                {topic.summary}
-              </p>
-            </div>
-            <ul className="mt-3 space-y-1.5">
-              {topic.exampleQuestions.map((question) => (
-                <li
-                  key={`${topic.id}-${question}`}
-                  className="flex items-start gap-2 text-[13px]"
-                  style={{ color: "#273951", fontWeight: 500 }}
-                >
-                  <span style={{ color: "#94a3b8" }}>—</span>
-                  <span>{question}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -902,8 +858,7 @@ export function KnowledgePage() {
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(
     null,
   );
-  const [activeTab, setActiveTab] = useState<KnowledgeTab>("topics");
-  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
+  const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [editingChunkId, setEditingChunkId] = useState<string | null>(null);
   const [editingChunkText, setEditingChunkText] = useState<EditingChunkText>(
@@ -929,13 +884,13 @@ export function KnowledgePage() {
   const chunks = chunksQuery.data?.items ?? [];
   const isUploadDisabled = !tenantId || isUploading;
   const isChunkMutationPending = isUpdatingChunk || isReindexingDocument;
-  const topicViews = buildDocumentTopicViews(chunks);
-  const filteredTopics = topicViews.filter((topic) =>
-    matchesTopicSearch(topic, searchKeyword),
+  const pageViews = buildDocumentPageViews(chunks);
+  const filteredPages = pageViews.filter((page) =>
+    matchesPageSearch(page, searchKeyword),
   );
-  const selectedTopic =
-    filteredTopics.find((topic) => topic.id === selectedTopicId) ??
-    filteredTopics[0] ??
+  const selectedPage =
+    filteredPages.find((page) => page.id === selectedPageId) ??
+    filteredPages[0] ??
     null;
   const isDocumentReady = selectedDocument
     ? readyStatuses.has(selectedDocument.status)
@@ -943,39 +898,35 @@ export function KnowledgePage() {
   const isFailedDocument = selectedDocument
     ? failedStatuses.has(selectedDocument.status)
     : false;
-  const selectedDocumentTopicCount = selectedDocument
-    ? topicViews.length
-    : null;
 
   /* ────────────────── Effects ────────────────── */
   useEffect(() => {
     if (!selectedDocumentId) return;
     if (!documents.some((document) => document.id === selectedDocumentId)) {
       setSelectedDocumentId(null);
-      setSelectedTopicId(null);
+      setSelectedPageId(null);
       setEditingChunkId(null);
       setChunkError(null);
     }
   }, [documents, selectedDocumentId]);
 
   useEffect(() => {
-    if (filteredTopics.length === 0) {
-      if (selectedTopicId) setSelectedTopicId(null);
+    if (filteredPages.length === 0) {
+      if (selectedPageId) setSelectedPageId(null);
       return;
     }
     if (
-      !selectedTopicId ||
-      !filteredTopics.some((topic) => topic.id === selectedTopicId)
+      !selectedPageId ||
+      !filteredPages.some((page) => page.id === selectedPageId)
     ) {
-      setSelectedTopicId(filteredTopics[0].id);
+      setSelectedPageId(filteredPages[0].id);
     }
-  }, [filteredTopics, selectedTopicId]);
+  }, [filteredPages, selectedPageId]);
 
   /* ────────────────── Handlers ────────────────── */
   const resetSheetState = useCallback((clearSelectedDocument: boolean) => {
     if (clearSelectedDocument) setSelectedDocumentId(null);
-    setActiveTab("topics");
-    setSelectedTopicId(null);
+    setSelectedPageId(null);
     setSearchKeyword("");
     setEditingChunkId(null);
     setEditingChunkText({});
@@ -1076,8 +1027,7 @@ export function KnowledgePage() {
 
   const handleOpenDocument = useCallback((document: TenantDocument) => {
     setSelectedDocumentId(document.id);
-    setActiveTab("topics");
-    setSelectedTopicId(null);
+    setSelectedPageId(null);
     setSearchKeyword("");
     setEditingChunkId(null);
     setEditingChunkText({});
@@ -1180,16 +1130,12 @@ export function KnowledgePage() {
     }
   }, [reindexDocument, selectedDocumentId, tenantId]);
 
-  const handleQuestionTest = useCallback(() => {
-    toast.info("질문 테스트 기능은 준비 중입니다.");
-  }, []);
-
   /* ────────────────── Render ────────────────── */
   const tableHeaders = [
     { label: "문서명", className: "" },
     { label: "등록일", className: "w-[160px]" },
     { label: "준비 상태", className: "w-[120px]" },
-    { label: "정리된 주제 수", className: "w-[120px]" },
+    { label: "항목 수", className: "w-[100px]" },
     { label: "내용 보기", className: "w-[120px]" },
     { label: "삭제", className: "w-[100px]" },
   ] as const;
@@ -1485,11 +1431,7 @@ export function KnowledgePage() {
                   <DocumentRow
                     key={document.id}
                     document={document}
-                    topicCount={
-                      selectedDocument?.id === document.id
-                        ? selectedDocumentTopicCount
-                        : document.chunk_count
-                    }
+                    chunkCount={document.chunk_count}
                     isSelected={selectedDocumentId === document.id}
                     isDeleting={deletingDocumentId === document.id}
                     isActionDisabled={isChunkMutationPending}
@@ -1539,7 +1481,7 @@ export function KnowledgePage() {
                     className="mt-1 text-[12.5px] leading-[1.55]"
                     style={{ color: "#64748d", fontWeight: 500 }}
                   >
-                    AI 상담원이 참고할 수 있도록 문서 내용을 주제별로
+                    AI 상담원이 참고할 수 있도록 문서 내용을 페이지별로
                     정리했습니다.
                   </SheetDescription>
                 </div>
@@ -1556,7 +1498,7 @@ export function KnowledgePage() {
                     className="hds-tnum"
                     style={{ color: "#64748d", fontWeight: 500 }}
                   >
-                    주제 {topicViews.length}개
+                    페이지 {pageViews.length}개
                   </span>
                   <span style={{ color: "#94a3b8" }}>·</span>
                   <span
@@ -1623,7 +1565,7 @@ export function KnowledgePage() {
                   <div className="space-y-4">
                     <Skeleton className="h-12 w-full rounded-[8px]" />
                     <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
-                      <TopicListSkeleton />
+                      <PageListSkeleton />
                       <Skeleton className="h-[520px] w-full rounded-[8px]" />
                     </div>
                   </div>
@@ -1640,52 +1582,14 @@ export function KnowledgePage() {
                     문서 내용을 불러오지 못했습니다. {chunksQuery.error.message}
                   </div>
                 ) : (
-                  <Tabs
-                    value={activeTab}
-                    onValueChange={(value) =>
-                      setActiveTab(value as KnowledgeTab)
-                    }
-                    className="gap-4"
-                  >
-                    <TabsList
-                      className="grid h-auto w-full grid-cols-2 gap-1 rounded-[8px] p-1"
-                      style={{
-                        backgroundColor: "#f6f9fc",
-                        border: "1px solid #e5edf5",
-                      }}
-                    >
-                      <TabsTrigger
-                        value="topics"
-                        className="rounded-[6px] py-2 text-[13px] data-[state=active]:bg-white data-[state=active]:text-[#533afd]"
-                        style={{
-                          color: "#64748d",
-                          fontFamily: "var(--hds-font-body)",
-                          fontWeight: 600,
-                        }}
-                      >
-                        주제별 내용
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="questions"
-                        className="rounded-[6px] py-2 text-[13px] data-[state=active]:bg-white data-[state=active]:text-[#533afd]"
-                        style={{
-                          color: "#64748d",
-                          fontFamily: "var(--hds-font-body)",
-                          fontWeight: 600,
-                        }}
-                      >
-                        질문 예시
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="topics" className="space-y-4">
+                  <div className="space-y-4">
                       {!isDocumentReady ? (
                         <SheetStatusNotice
                           status={selectedDocument.status}
                           isActionDisabled={isChunkMutationPending}
                           onReindex={() => void handleReindexDocument()}
                         />
-                      ) : filteredTopics.length === 0 ? (
+                      ) : filteredPages.length === 0 ? (
                         <div
                           className="flex min-h-[240px] flex-col items-center justify-center gap-2 rounded-[12px] p-6 text-center"
                           style={{
@@ -1709,7 +1613,7 @@ export function KnowledgePage() {
                           >
                             {searchKeyword.trim()
                               ? "검색 결과가 없습니다"
-                              : "정리된 주제가 없습니다"}
+                              : "정리된 페이지가 없습니다"}
                           </p>
                           <p
                             className="text-[12.5px]"
@@ -1717,7 +1621,7 @@ export function KnowledgePage() {
                           >
                             {searchKeyword.trim()
                               ? "다른 검색어로 다시 찾아보세요."
-                              : "문서를 다시 처리한 뒤 주제별 상담 지식이 표시됩니다."}
+                              : "문서를 다시 처리한 뒤 페이지별 상담 지식이 표시됩니다."}
                           </p>
                         </div>
                       ) : (
@@ -1741,26 +1645,26 @@ export function KnowledgePage() {
                                   fontWeight: 700,
                                 }}
                               >
-                                주제 목록
+                                페이지 목록
                               </h3>
                               <p
                                 className="mt-0.5 text-[12px]"
                                 style={{ color: "#64748d", fontWeight: 500 }}
                               >
-                                AI 상담원이 참고할 상담 지식을 모았습니다.
+                                PDF 페이지 단위로 정리된 상담 지식입니다.
                               </p>
                             </div>
                             <ScrollArea className="h-[560px]">
                               <div className="space-y-1.5 p-3">
-                                {filteredTopics.map((topic) => {
+                                {filteredPages.map((page) => {
                                   const isActive =
-                                    selectedTopic?.id === topic.id;
+                                    selectedPage?.id === page.id;
                                   return (
                                     <button
-                                      key={topic.id}
+                                      key={page.id}
                                       type="button"
                                       onClick={() =>
-                                        setSelectedTopicId(topic.id)
+                                        setSelectedPageId(page.id)
                                       }
                                       className={cn(
                                         "relative w-full rounded-[8px] p-3 text-left transition-colors",
@@ -1791,56 +1695,50 @@ export function KnowledgePage() {
                                           style={{ backgroundColor: "#533afd" }}
                                         />
                                       ) : null}
-                                      <p
-                                        className="text-[13px]"
-                                        style={{
-                                          color: isActive
-                                            ? "#533afd"
-                                            : "#061b31",
-                                          fontWeight: 600,
-                                        }}
-                                      >
-                                        {topic.title}
-                                      </p>
-                                      <p
-                                        className="mt-1 line-clamp-2 text-[12px] leading-[1.55]"
-                                        style={{
-                                          color: "#64748d",
-                                          fontWeight: 500,
-                                        }}
-                                      >
-                                        {topic.summary || topic.answerText}
-                                      </p>
-                                      {topic.keywords.length > 0 ? (
-                                        <div className="mt-2 flex flex-wrap gap-1">
-                                          {topic.keywords
-                                            .slice(0, 4)
-                                            .map((keyword) => (
-                                              <span
-                                                key={`${topic.id}-${keyword}`}
-                                                className="rounded-[3px] px-1.5 py-0.5 text-[10.5px]"
-                                                style={{
-                                                  color: "#64748d",
-                                                  backgroundColor: "#f6f9fc",
-                                                  border: "1px solid #e5edf5",
-                                                  fontWeight: 500,
-                                                }}
-                                              >
-                                                {keyword}
-                                              </span>
-                                            ))}
-                                        </div>
+                                      <div className="flex items-center gap-2">
+                                        <span
+                                          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px]"
+                                          style={{
+                                            color: isActive ? "#533afd" : "#94a3b8",
+                                            backgroundColor: isActive
+                                              ? "rgba(83,58,253,0.10)"
+                                              : "#f6f9fc",
+                                            border: isActive
+                                              ? "1px solid rgba(83,58,253,0.20)"
+                                              : "1px solid #e5edf5",
+                                          }}
+                                        >
+                                          <FileText className="h-3 w-3" aria-hidden="true" />
+                                        </span>
+                                        <p
+                                          className="hds-tnum text-[13px]"
+                                          style={{
+                                            color: isActive
+                                              ? "#533afd"
+                                              : "#061b31",
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          {page.label}
+                                        </p>
+                                        <span
+                                          className="hds-tnum text-[11.5px]"
+                                          style={{ color: "#94a3b8", fontWeight: 500 }}
+                                        >
+                                          · 항목 {page.chunkCount}개
+                                        </span>
+                                      </div>
+                                      {page.previewTitles.length > 0 ? (
+                                        <p
+                                          className="mt-1.5 line-clamp-2 text-[12px] leading-[1.55]"
+                                          style={{
+                                            color: "#64748d",
+                                            fontWeight: 500,
+                                          }}
+                                        >
+                                          {page.previewTitles.join(" · ")}
+                                        </p>
                                       ) : null}
-                                      <p
-                                        className="hds-tnum mt-2 text-[11px]"
-                                        style={{
-                                          color: "#94a3b8",
-                                          fontWeight: 500,
-                                        }}
-                                      >
-                                        출처{" "}
-                                        {formatPageLabel(topic.sourcePages)}
-                                      </p>
                                     </button>
                                   );
                                 })}
@@ -1848,9 +1746,10 @@ export function KnowledgePage() {
                             </ScrollArea>
                           </div>
 
-                          {selectedTopic ? (
-                            <TopicDetailPanel
-                              topic={selectedTopic}
+                          {selectedPage ? (
+                            <PageDetailPanel
+                              key={selectedPage.id}
+                              page={selectedPage}
                               editingChunkId={editingChunkId}
                               editingChunkText={editingChunkText}
                               isSaving={isChunkMutationPending}
@@ -1864,32 +1763,12 @@ export function KnowledgePage() {
                             />
                           ) : (
                             <EmptyShell height="h-[520px]">
-                              선택된 주제가 없습니다.
+                              선택된 페이지가 없습니다.
                             </EmptyShell>
                           )}
                         </div>
                       )}
-                    </TabsContent>
-
-                    <TabsContent value="questions" className="space-y-4">
-                      {!isDocumentReady ? (
-                        <SheetStatusNotice
-                          status={selectedDocument.status}
-                          isActionDisabled={isChunkMutationPending}
-                          onReindex={() => void handleReindexDocument()}
-                        />
-                      ) : filteredTopics.length === 0 ? (
-                        <EmptyShell height="h-[160px]">
-                          표시할 질문 예시가 없습니다.
-                        </EmptyShell>
-                      ) : (
-                        <QuestionsTab
-                          topics={filteredTopics}
-                          onTestQuestion={handleQuestionTest}
-                        />
-                      )}
-                    </TabsContent>
-                  </Tabs>
+                    </div>
                 )}
               </div>
             </>

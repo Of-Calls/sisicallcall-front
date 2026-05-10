@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock,
   Headphones,
+  Info,
   Minus,
   PhoneIncoming,
   RefreshCw,
@@ -268,7 +269,7 @@ function MetricCard({
       <p
         className="hds-tnum mt-3 text-[24px] tracking-[-0.014em]"
         style={{
-          color: "#061b31",
+          color: value === "0" || value === "0%" ? "#cbd5e1" : "#061b31",
           fontFamily: "var(--hds-font-display)",
           fontWeight: 700,
           lineHeight: 1.2,
@@ -689,6 +690,35 @@ export function DashboardHomePage() {
             onDismiss={() => setShowAlert(false)}
             isVisible={showAlert}
           />
+        ) : null}
+
+        {statsQuery.isSuccess && stats.totalCalls === 0 ? (
+          <div
+            className="flex items-start gap-3 rounded-[12px] px-4 py-3.5 text-[13px]"
+            style={{
+              backgroundColor: "#f6f9fc",
+              border: "1px solid #e5edf5",
+              fontFamily: "var(--hds-font-body)",
+            }}
+          >
+            <Info
+              className="mt-0.5 h-4 w-4 shrink-0"
+              style={{ color: "#533afd" }}
+              aria-hidden="true"
+            />
+            <div className="space-y-0.5">
+              <p style={{ color: "#061b31", fontWeight: 600 }}>
+                아직 집계된 통화 데이터가 없습니다.
+              </p>
+              <p
+                className="text-[12.5px]"
+                style={{ color: "#64748d", fontWeight: 500 }}
+              >
+                통화가 진행되고 후처리 분석이 완료되면 여기에 자동으로
+                채워집니다.
+              </p>
+            </div>
+          </div>
         ) : null}
 
         {/* Section: KPI overview */}

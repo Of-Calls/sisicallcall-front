@@ -3,11 +3,9 @@ import { motion } from "framer-motion";
 import {
   Activity,
   Bot,
-  Check,
   ChevronLeft,
   ChevronRight,
   Clock,
-  Copy,
   MessageSquare,
   Phone,
   User,
@@ -27,7 +25,9 @@ import {
   StatusBadge,
 } from "@/components/dashboard/page-chrome";
 import {
+  formatCaller,
   formatDateTime,
+  formatDateTimeShort,
   formatDuration,
   getCallStatusLabel,
   getEmotionLabel,
@@ -60,25 +60,14 @@ function buildCallsQuery(page: number) {
   };
 }
 
-function getCallIntent(call: BackendCall) {
+function getCallIntent(call: BackendCall): string | null {
   const intent = call.branch_stats?.intent;
-  return typeof intent === "string" && intent.length > 0 ? intent : "분류 전";
+  return typeof intent === "string" && intent.length > 0 ? intent : null;
 }
 
-function getCallSummaryPreview(call: BackendCall) {
+function getCallSummaryPreview(call: BackendCall): string | null {
   const summary = call.branch_stats?.summary;
-  if (typeof summary === "string" && summary.length > 0) {
-    return summary;
-  }
-
-  return `${getCallStatusLabel(call.status)} · ${formatDuration(call.duration_sec)}`;
-}
-
-function formatCallId(callId: string) {
-  if (callId.length <= 18) {
-    return callId;
-  }
-  return `${callId.slice(0, 8)}…${callId.slice(-6)}`;
+  return typeof summary === "string" && summary.length > 0 ? summary : null;
 }
 
 /* Status mapping → token tones */
@@ -144,7 +133,7 @@ function CallsTableSkeleton() {
     <>
       {Array.from({ length: 5 }).map((_, index) => (
         <tr key={index} style={{ borderBottom: "1px solid #e5edf5" }}>
-          {Array.from({ length: 7 }).map((__, cellIndex) => (
+          {Array.from({ length: 6 }).map((__, cellIndex) => (
             <td key={cellIndex} className="px-4 py-3">
               <Skeleton className="h-3.5 w-full" />
             </td>
@@ -264,7 +253,6 @@ function McpActionLogsSection({
 export function CallsPage() {
   const [page, setPage] = useState(1);
   const [selectedCallId, setSelectedCallId] = useState<string | null>(null);
-  const [copiedCallId, setCopiedCallId] = useState<string | null>(null);
 
   const callsParams = useMemo(() => buildCallsQuery(page), [page]);
   const callsQuery = useCalls(callsParams);
@@ -290,29 +278,13 @@ export function CallsPage() {
     if (page > totalPages) setPage(totalPages);
   }, [callsQuery.isFetching, page, totalCalls, totalPages]);
 
-  useEffect(() => {
-    if (!copiedCallId) return;
-    const timeout = window.setTimeout(() => setCopiedCallId(null), 1500);
-    return () => window.clearTimeout(timeout);
-  }, [copiedCallId]);
-
-  async function handleCopyCallId(callId: string) {
-    try {
-      await navigator.clipboard.writeText(callId);
-      setCopiedCallId(callId);
-    } catch {
-      setCopiedCallId(null);
-    }
-  }
-
   const headers = [
-    { label: "일시", className: "w-[170px]" },
-    { label: "통화 ID", className: "w-[200px]" },
+    { label: "일시", className: "w-[150px]" },
     { label: "발신 번호", className: "w-[140px]" },
-    { label: "주요 의도", className: "w-[120px]" },
-    { label: "통화 시간", className: "w-[100px] text-center" },
+    { label: "통화 시간", className: "w-[90px] text-center" },
     { label: "상태", className: "w-[110px] text-center" },
     { label: "요약", className: "" },
+    { label: "", className: "w-[40px]" },
   ] as const;
 
   return (
@@ -329,7 +301,7 @@ export function CallsPage() {
         }
       />
 
-      <div className="space-y-5 px-8 py-6">
+      <div className="mx-auto w-full max-w-[1200px] space-y-5 px-8 py-6">
         {callsQuery.isError ? (
           <div
             className="rounded-[8px] px-4 py-3 text-[13px]"
@@ -370,7 +342,7 @@ export function CallsPage() {
                 >
                   {headers.map((h) => (
                     <th
-                      key={h.label}
+                      key={h.label || "chevron"}
                       scope="col"
                       className={cn(
                         "whitespace-nowrap px-4 py-3 text-[11.5px] uppercase",
@@ -393,7 +365,7 @@ export function CallsPage() {
                 {!callsQuery.isLoading && calls.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={6}
                       className="h-28 text-center text-[13px]"
                       style={{ color: "#64748d", fontWeight: 500 }}
                     >
@@ -402,103 +374,83 @@ export function CallsPage() {
                   </tr>
                 ) : null}
 
-                {calls.map((call, idx) => (
-                  <motion.tr
-                    key={call.id}
-                    initial={{ opacity: 0, x: -6 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.025 * idx, duration: 0.25 }}
-                    onClick={() => setSelectedCallId(call.id)}
-                    className="group cursor-pointer align-top transition-colors"
-                    style={{ borderBottom: "1px solid #e5edf5" }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor = "#f6f9fc")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.backgroundColor = "transparent")
-                    }
-                  >
-                    <td
-                      className="hds-tnum px-4 py-4 text-[12.5px]"
-                      style={{ color: "#64748d", fontWeight: 500 }}
+                {calls.map((call, idx) => {
+                  const intent = getCallIntent(call);
+                  const summary = getCallSummaryPreview(call);
+                  return (
+                    <motion.tr
+                      key={call.id}
+                      initial={{ opacity: 0, x: -6 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.025 * idx, duration: 0.25 }}
+                      onClick={() => setSelectedCallId(call.id)}
+                      className="group cursor-pointer align-middle transition-colors"
+                      style={{ borderBottom: "1px solid #e5edf5" }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#f6f9fc")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor = "transparent")
+                      }
                     >
-                      {formatDateTime(call.started_at)}
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="hds-tnum text-[12.5px]"
-                          style={{
-                            color: "#273951",
-                            fontFamily: "var(--hds-font-mono)",
-                            fontWeight: 500,
-                          }}
-                          title={call.id}
-                        >
-                          {formatCallId(call.id)}
-                        </span>
-                        <button
-                          type="button"
-                          aria-label="통화 ID 복사"
-                          className="inline-flex h-6 w-6 items-center justify-center rounded-[4px] transition-colors"
-                          style={{ color: "#94a3b8" }}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            void handleCopyCallId(call.id);
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#eef2f8";
-                            e.currentTarget.style.color = "#273951";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              "transparent";
-                            e.currentTarget.style.color = "#94a3b8";
-                          }}
-                        >
-                          {copiedCallId === call.id ? (
-                            <Check className="h-3 w-3" aria-hidden="true" />
+                      <td
+                        className="hds-tnum whitespace-nowrap px-4 py-4 text-[12.5px]"
+                        style={{ color: "#64748d", fontWeight: 500 }}
+                      >
+                        {formatDateTimeShort(call.started_at)}
+                      </td>
+                      <td
+                        className="hds-tnum whitespace-nowrap px-4 py-4 text-[13px]"
+                        style={{ color: "#273951", fontWeight: 500 }}
+                      >
+                        {formatCaller(call.caller_number)}
+                      </td>
+                      <td
+                        className="hds-tnum whitespace-nowrap px-4 py-4 text-center text-[12.5px]"
+                        style={{ color: "#64748d", fontWeight: 500 }}
+                      >
+                        {formatDuration(call.duration_sec)}
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <StatusBadge tone={getStatusBadgeTone(call.status)}>
+                          {getCallStatusLabel(call.status)}
+                        </StatusBadge>
+                      </td>
+                      <td
+                        className="px-4 py-4 text-[12.5px] transition-colors"
+                        style={{
+                          color: "#64748d",
+                          fontWeight: 500,
+                        }}
+                      >
+                        <div className="space-y-1.5">
+                          {intent ? (
+                            <StatusBadge tone="neutral">{intent}</StatusBadge>
+                          ) : null}
+                          {summary ? (
+                            <p className="line-clamp-2 leading-[1.55]">
+                              {summary}
+                            </p>
                           ) : (
-                            <Copy className="h-3 w-3" aria-hidden="true" />
+                            <p
+                              className="text-[12px] italic"
+                              style={{ color: "#94a3b8", fontWeight: 500 }}
+                            >
+                              후처리 분석 대기 중
+                            </p>
                           )}
-                        </button>
-                      </div>
-                    </td>
-                    <td
-                      className="hds-tnum px-4 py-4 text-[13px]"
-                      style={{ color: "#273951", fontWeight: 500 }}
-                    >
-                      {call.caller_number ?? "번호 없음"}
-                    </td>
-                    <td className="px-4 py-4">
-                      <StatusBadge tone="neutral">
-                        {getCallIntent(call)}
-                      </StatusBadge>
-                    </td>
-                    <td
-                      className="hds-tnum px-4 py-4 text-center text-[12.5px]"
-                      style={{ color: "#64748d", fontWeight: 500 }}
-                    >
-                      {formatDuration(call.duration_sec)}
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <StatusBadge tone={getStatusBadgeTone(call.status)}>
-                        {getCallStatusLabel(call.status)}
-                      </StatusBadge>
-                    </td>
-                    <td
-                      className="max-w-[260px] px-4 py-4 text-[12.5px] transition-colors"
-                      style={{
-                        color: "#64748d",
-                        fontWeight: 500,
-                      }}
-                    >
-                      <div className="line-clamp-2 leading-[1.5]">
-                        {getCallSummaryPreview(call)}
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
+                        </div>
+                      </td>
+                      <td className="px-3 py-4 text-right">
+                        <ChevronRight
+                          className="ml-auto h-4 w-4 transition-colors group-hover:text-[#533afd]"
+                          style={{ color: "#cbd5e1" }}
+                          aria-hidden="true"
+                        />
+                      </td>
+                    </motion.tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -548,7 +500,7 @@ export function CallsPage() {
         onOpenChange={(open) => !open && setSelectedCallId(null)}
       >
         <SheetContent
-          className="w-full overflow-y-auto sm:max-w-lg"
+          className="w-full overflow-y-auto p-0 sm:max-w-lg"
           style={{
             backgroundColor: "#ffffff",
             fontFamily: "var(--hds-font-body)",
@@ -556,7 +508,7 @@ export function CallsPage() {
           }}
         >
           <SheetHeader
-            className="pb-4"
+            className="gap-0 px-6 py-5"
             style={{ borderBottom: "1px solid #e5edf5" }}
           >
             <SheetTitle
@@ -577,7 +529,7 @@ export function CallsPage() {
           </SheetHeader>
 
           {selectedCallId && (
-            <div className="mt-6 space-y-6">
+            <div className="space-y-6 px-6 py-6">
               {callDetailQuery.isError ? (
                 <div
                   className="rounded-[8px] px-3 py-3 text-[13px]"
@@ -594,39 +546,41 @@ export function CallsPage() {
               ) : null}
 
               {selectedCall ? (
-                <div className="grid grid-cols-2 gap-4">
-                  <DetailField label="통화 ID" mono>
-                    {selectedCall.id}
-                  </DetailField>
-                  <DetailField label="일시">
-                    {formatDateTime(selectedCall.started_at)}
-                  </DetailField>
-                  <DetailField label="발신 번호" tnum>
-                    {selectedCall.caller_number ?? "번호 없음"}
-                  </DetailField>
-                  <DetailField label="통화 시간" tnum>
-                    {formatDuration(selectedCall.duration_sec)}
-                  </DetailField>
-                  <DetailField label="주요 의도">
-                    <StatusBadge tone="neutral">
-                      {getCallIntent(selectedCall)}
-                    </StatusBadge>
-                  </DetailField>
-                  <DetailField label="상태">
+                <dl
+                  className="overflow-hidden rounded-[8px]"
+                  style={{
+                    backgroundColor: "#ffffff",
+                    border: "1px solid #e5edf5",
+                  }}
+                >
+                  <InfoRow label="일시">
+                    <span className="hds-tnum">
+                      {formatDateTimeShort(selectedCall.started_at)}
+                    </span>
+                  </InfoRow>
+                  <InfoRow label="발신 번호">
+                    <span className="hds-tnum">
+                      {formatCaller(selectedCall.caller_number)}
+                    </span>
+                  </InfoRow>
+                  <InfoRow label="통화 시간">
+                    <span className="hds-tnum">
+                      {formatDuration(selectedCall.duration_sec)}
+                    </span>
+                  </InfoRow>
+                  <InfoRow label="상태">
                     <StatusBadge tone={getStatusBadgeTone(selectedCall.status)}>
                       {getCallStatusLabel(selectedCall.status)}
                     </StatusBadge>
-                  </DetailField>
-                </div>
+                  </InfoRow>
+                  <InfoRow label="주요 의도" isLast>
+                    <StatusBadge tone="neutral">
+                      {getCallIntent(selectedCall) ?? "분류 전"}
+                    </StatusBadge>
+                  </InfoRow>
+                </dl>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
-                  {Array.from({ length: 6 }).map((_, index) => (
-                    <Skeleton
-                      key={index}
-                      className="h-12 w-full rounded-[6px]"
-                    />
-                  ))}
-                </div>
+                <Skeleton className="h-[220px] w-full rounded-[8px]" />
               )}
 
               {/* Summary */}
@@ -871,39 +825,34 @@ function PaginationButton({
   );
 }
 
-function DetailField({
+function InfoRow({
   label,
   children,
-  mono = false,
-  tnum = false,
+  isLast = false,
 }: {
   label: string;
   children: React.ReactNode;
-  mono?: boolean;
-  tnum?: boolean;
+  isLast?: boolean;
 }) {
   return (
-    <div className="space-y-1">
-      <p
-        className="text-[11px] uppercase"
-        style={{
-          color: "#94a3b8",
-          fontWeight: 600,
-          letterSpacing: "0.5px",
-        }}
+    <div
+      className="flex items-center gap-4 px-4 py-3"
+      style={{
+        borderBottom: isLast ? "none" : "1px solid #f1f5f9",
+      }}
+    >
+      <dt
+        className="w-[88px] shrink-0 text-[12.5px]"
+        style={{ color: "#64748d", fontWeight: 500 }}
       >
         {label}
-      </p>
-      <div
-        className={cn("text-[13px]", tnum && "hds-tnum")}
-        style={{
-          color: "#061b31",
-          fontWeight: 500,
-          fontFamily: mono ? "var(--hds-font-mono)" : undefined,
-        }}
+      </dt>
+      <dd
+        className="flex-1 text-[13px]"
+        style={{ color: "#061b31", fontWeight: 500 }}
       >
         {children}
-      </div>
+      </dd>
     </div>
   );
 }

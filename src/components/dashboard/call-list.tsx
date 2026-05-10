@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Phone } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import {
-  formatDateTime,
+  formatCaller,
+  formatDateTimeShort,
   formatDuration,
   getCallStatusLabel,
   getEmotionLabel,
@@ -160,18 +161,14 @@ const rowVariants = {
   }),
 };
 
-const COL_COUNT = 9;
+const COL_COUNT = 5;
 
 const headers = [
-  { label: "ID", className: "w-[120px]" },
-  { label: "상태 / 시작", className: "w-[180px]" },
-  { label: "연락처", className: "w-[140px]" },
+  { label: "일시", className: "w-[200px]" },
+  { label: "연락처", className: "w-[130px]" },
   { label: "요약", className: "" },
-  { label: "우선순위", className: "w-[100px]" },
-  { label: "감정", className: "w-[88px]" },
-  { label: "해결 상태", className: "w-[120px]" },
-  { label: "통화 시간", className: "w-[100px] text-right" },
-  { label: "액션", className: "w-[120px] text-right" },
+  { label: "우선순위", className: "w-[90px] text-center" },
+  { label: "통화 시간", className: "w-[90px] text-right" },
 ] as const;
 
 function CallListSkeleton() {
@@ -328,7 +325,7 @@ export function CallList({
                 initial="hidden"
                 animate="visible"
                 variants={rowVariants}
-                className="group transition-colors"
+                className="group align-middle transition-colors"
                 style={{ borderBottom: "1px solid #e5edf5" }}
                 onMouseEnter={(e) =>
                   (e.currentTarget.style.backgroundColor = "#f6f9fc")
@@ -337,81 +334,63 @@ export function CallList({
                   (e.currentTarget.style.backgroundColor = "transparent")
                 }
               >
-                <td
-                  className="hds-mono px-4 py-3 text-[12px]"
-                  style={{
-                    color: "#64748d",
-                    fontFamily: "var(--hds-font-mono)",
-                    fontWeight: 400,
-                  }}
-                >
-                  {call.id}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="space-y-1">
+                <td className="whitespace-nowrap px-4 py-3">
+                  <div className="flex items-center gap-2">
                     <StatusBadge tone="neutral">
                       {getCallStatusLabel(call.status)}
                     </StatusBadge>
-                    <p
-                      className="hds-tnum text-[11.5px]"
+                    <span
+                      className="hds-tnum text-[12px]"
                       style={{ color: "#64748d", fontWeight: 500 }}
                     >
-                      {formatDateTime(call.started_at)}
-                    </p>
+                      {formatDateTimeShort(call.started_at)}
+                    </span>
                   </div>
                 </td>
                 <td
-                  className="hds-tnum px-4 py-3 text-[13px]"
+                  className="hds-tnum whitespace-nowrap px-4 py-3 text-[13px]"
                   style={{ color: "#273951", fontWeight: 500 }}
                 >
-                  {call.caller_number ?? "번호 없음"}
-                </td>
-                <td
-                  className="max-w-[280px] truncate px-4 py-3 text-[13px]"
-                  style={{
-                    color: "#273951",
-                    fontWeight: 500,
-                  }}
-                  title={call.summary_short ?? "요약 없음"}
-                >
-                  {call.summary_short ?? "요약 없음"}
+                  {formatCaller(call.caller_number)}
                 </td>
                 <td className="px-4 py-3">
+                  <div className="space-y-1">
+                    <p
+                      className="line-clamp-2 text-[13px] leading-[1.5]"
+                      style={{ color: "#273951", fontWeight: 500 }}
+                      title={call.summary_short ?? undefined}
+                    >
+                      {call.summary_short ?? "요약 없음"}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <SentimentBadge sentiment={call.customer_emotion} />
+                      {call.resolution_status ? (
+                        <>
+                          <span
+                            className="text-[11.5px]"
+                            style={{ color: "#cbd5e1" }}
+                          >
+                            ·
+                          </span>
+                          <span
+                            className="text-[11.5px]"
+                            style={{ color: "#64748d", fontWeight: 500 }}
+                          >
+                            {getResolutionStatusLabel(call.resolution_status)}
+                          </span>
+                        </>
+                      ) : null}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-center">
                   <PriorityBadge priority={call.priority} />
                 </td>
-                <td className="px-4 py-3">
-                  <SentimentBadge sentiment={call.customer_emotion} />
-                </td>
                 <td
-                  className="px-4 py-3 text-[12.5px]"
-                  style={{ color: "#64748d", fontWeight: 500 }}
-                >
-                  {getResolutionStatusLabel(
-                    call.resolution_status ?? undefined,
-                  )}
-                </td>
-                <td
-                  className="hds-tnum px-4 py-3 text-right text-[13px]"
+                  className="hds-tnum whitespace-nowrap px-4 py-3 text-right text-[13px]"
                   style={{ color: "#273951", fontWeight: 500 }}
                 >
                   {formatDuration(call.duration_sec)}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    type="button"
-                    disabled
-                    className="inline-flex items-center gap-1.5 rounded-[6px] px-2.5 py-1.5 text-[11.5px] transition-colors"
-                    style={{
-                      color: "#94a3b8",
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #e5edf5",
-                      fontWeight: 500,
-                      cursor: "not-allowed",
-                    }}
-                  >
-                    <Phone className="h-3 w-3" />
-                    연결 준비 중
-                  </button>
                 </td>
               </motion.tr>
             ))}

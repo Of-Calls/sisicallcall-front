@@ -3,6 +3,7 @@ import type { RagDocumentChunk } from "@/features/documents/documentTypes"
 type UnknownRecord = Record<string, unknown>
 
 const topicTitleKeys = [
+  "llm_title",
   "title",
   "topic",
   "category",
@@ -11,15 +12,9 @@ const topicTitleKeys = [
   "product_name",
 ]
 
-const summaryKeys = ["summary"]
-const keywordKeys = ["keywords"]
+const summaryKeys = ["llm_summary", "summary"]
+const keywordKeys = ["llm_keywords", "keywords"]
 const pageKeys = ["page", "page_number", "page_numbers", "pages", "source_page", "source_pages"]
-const questionPriorityKeys = [
-  "questions",
-  "example_questions",
-  "examples",
-  "intent_examples",
-]
 
 export const documentStatusLabelMap = {
   processing: "AI 상담 지식으로 준비 중",
@@ -29,15 +24,29 @@ export const documentStatusLabelMap = {
   error: "처리 실패",
 } as const
 
-export type DocumentTopicView = {
-  id: string
+export type ChunkView = {
   title: string
   summary: string
   keywords: string[]
-  answerText: string
-  exampleQuestions: string[]
-  sourcePages: number[]
-  chunkIds: string[]
+}
+
+export function buildChunkView(chunk: RagDocumentChunk, fallbackIndex: number): ChunkView {
+  const metadata = toRecord(chunk.metadata)
+  const answerText = cleanText(chunk.content)
+  return {
+    title: extractTopicTitle(metadata, chunk, fallbackIndex),
+    summary: extractSummary(metadata, answerText),
+    keywords: extractKeywords(metadata),
+  }
+}
+
+export type DocumentPageView = {
+  id: string
+  pageNumber: number | null
+  label: string
+  chunkCount: number
+  previewTitles: string[]
+  searchableText: string
   rawChunks: RagDocumentChunk[]
 }
 
@@ -178,130 +187,83 @@ function extractKeywords(metadata: Record<string, unknown>) {
   return uniqueStrings(getStringArrayMeta(metadata, keywordKeys))
 }
 
-function extractSourcePages(chunk: RagDocumentChunk, metadata: Record<string, unknown>) {
-  return uniqueNumbers([
-    ...(typeof chunk.page_number === "number" ? [chunk.page_number] : []),
-    ...getNumberArrayMeta(metadata, pageKeys),
-  ])
-}
-
 function isPageFallbackTitle(title: string) {
   return /^p\.\d+\s내용$/.test(title)
 }
 
-function buildFallbackQuestions(title: string) {
-  if (isPageFallbackTitle(title) || /^주제 \d+$/.test(title)) {
-    return [
-      "이 내용에 대해 알려주세요",
-      "이 내용은 어떻게 되나요?",
-      "이 내용 관련해서 문의드려요",
-    ]
-  }
-
-  return [
-    `${title}에 대해 알려주세요`,
-    `${title}은 어떻게 되나요?`,
-    `${title} 관련해서 문의드려요`,
-  ]
-}
-
-function extractExampleQuestions(metadata: Record<string, unknown>, title: string) {
-  const questions = uniqueStrings(getStringArrayMeta(metadata, questionPriorityKeys))
-
-  if (questions.length > 0) {
-    return questions.slice(0, 5)
-  }
-
-  return buildFallbackQuestions(title)
-}
-
-export function buildDocumentTopicViews(chunks: RagDocumentChunk[]): DocumentTopicView[] {
+export function buildDocumentPageViews(chunks: RagDocumentChunk[]): DocumentPageView[] {
   const groups = new Map<
     string,
     {
       id: string
-      title: string
-      summaryCandidates: string[]
-      keywords: string[]
-      answerParts: string[]
-      exampleQuestions: string[]
-      sourcePages: number[]
-      chunkIds: string[]
+      pageNumber: number | null
+      label: string
       rawChunks: RagDocumentChunk[]
-      sortPage: number
-      sortIndex: number
+      sortKey: number
     }
   >()
 
   const sortedChunks = [...chunks].sort((left, right) => left.chunk_index - right.chunk_index)
 
-  sortedChunks.forEach((chunk, index) => {
-    const metadata = toRecord(chunk.metadata)
-    const title = extractTopicTitle(metadata, chunk, index)
-    const answerText = cleanText(chunk.content)
-    const summary = extractSummary(metadata, answerText)
-    const keywords = extractKeywords(metadata)
-    const sourcePages = extractSourcePages(chunk, metadata)
-    const exampleQuestions = extractExampleQuestions(metadata, title)
-    const groupKey = title.toLowerCase()
+  sortedChunks.forEach((chunk) => {
+    const pageNumber =
+      typeof chunk.page_number === "number" && Number.isFinite(chunk.page_number)
+        ? chunk.page_number
+        : null
+    const groupKey = pageNumber === null ? "page-unknown" : `page-${pageNumber}`
+    const label = pageNumber === null ? "페이지 정보 없음" : `p.${pageNumber}`
+    const sortKey = pageNumber === null ? Number.MAX_SAFE_INTEGER : pageNumber
 
-    if (!groups.has(groupKey)) {
-      groups.set(groupKey, {
-        id: `${groupKey}-${index}`,
-        title,
-        summaryCandidates: [],
-        keywords: [],
-        answerParts: [],
-        exampleQuestions: [],
-        sourcePages: [],
-        chunkIds: [],
-        rawChunks: [],
-        sortPage: sourcePages[0] ?? Number.MAX_SAFE_INTEGER,
-        sortIndex: chunk.chunk_index,
-      })
-    }
-
-    const group = groups.get(groupKey)
-    if (!group) {
+    const existing = groups.get(groupKey)
+    if (existing) {
+      existing.rawChunks.push(chunk)
       return
     }
 
-    if (summary) {
-      group.summaryCandidates.push(summary)
-    }
-    if (answerText) {
-      group.answerParts.push(answerText)
-    }
-    group.keywords = uniqueStrings([...group.keywords, ...keywords])
-    group.exampleQuestions = uniqueStrings([...group.exampleQuestions, ...exampleQuestions])
-    group.sourcePages = uniqueNumbers([...group.sourcePages, ...sourcePages])
-    group.chunkIds.push(chunk.id)
-    group.rawChunks.push(chunk)
+    groups.set(groupKey, {
+      id: groupKey,
+      pageNumber,
+      label,
+      rawChunks: [chunk],
+      sortKey,
+    })
   })
 
   return Array.from(groups.values())
-    .sort((left, right) => {
-      if (left.sortPage !== right.sortPage) {
-        return left.sortPage - right.sortPage
-      }
-
-      return left.sortIndex - right.sortIndex
-    })
+    .sort((left, right) => left.sortKey - right.sortKey)
     .map((group) => {
-      const answerText = group.answerParts.join("\n\n")
-      const summary =
-        uniqueStrings(group.summaryCandidates)[0] ?? truncateText(answerText, 96)
+      const previewTitles: string[] = []
+      const searchParts: string[] = [group.label]
+
+      group.rawChunks.forEach((chunk, idx) => {
+        const view = buildChunkView(chunk, idx)
+        const isFallbackTitle =
+          isPageFallbackTitle(view.title) || /^주제 \d+$/.test(view.title)
+
+        if (previewTitles.length < 2) {
+          if (!isFallbackTitle) {
+            previewTitles.push(view.title)
+          } else {
+            const cleanedBody = cleanText(chunk.content)
+            const head = cleanedBody.slice(0, 30)
+            if (head) {
+              previewTitles.push(cleanedBody.length > 30 ? `${head}…` : head)
+            }
+          }
+        }
+
+        searchParts.push(view.title, view.summary, ...view.keywords, cleanText(chunk.content))
+      })
 
       return {
         id: group.id,
-        title: group.title,
-        summary,
-        keywords: group.keywords,
-        answerText,
-        exampleQuestions: group.exampleQuestions.slice(0, 5),
-        sourcePages: group.sourcePages,
-        chunkIds: group.chunkIds,
+        pageNumber: group.pageNumber,
+        label: group.label,
+        chunkCount: group.rawChunks.length,
+        previewTitles,
+        searchableText: searchParts.join("\n").toLowerCase(),
         rawChunks: group.rawChunks,
       }
     })
 }
+

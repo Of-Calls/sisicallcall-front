@@ -33,6 +33,38 @@ export function formatDateTime(value: string | null | undefined) {
   return date.toLocaleString("ko-KR")
 }
 
+export function formatDateTimeShort(value: string | null | undefined) {
+  if (!value) {
+    return "시간 정보 없음"
+  }
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  const yyyy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, "0")
+  const dd = String(date.getDate()).padStart(2, "0")
+  const hh = String(date.getHours()).padStart(2, "0")
+  const mi = String(date.getMinutes()).padStart(2, "0")
+  return `${yyyy}.${mm}.${dd} ${hh}:${mi}`
+}
+
+export function formatCaller(value: string | null | undefined) {
+  if (!value) {
+    return "번호 없음"
+  }
+  const digits = value.replace(/\D/g, "")
+  if (digits.length === 11 && digits.startsWith("010")) {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
+  }
+  if (digits.length === 10 && digits.startsWith("02")) {
+    return `${digits.slice(0, 2)}-${digits.slice(2, 6)}-${digits.slice(6)}`
+  }
+  return value
+}
+
 export function getCallStatusLabel(status: CallStatus | string | undefined) {
   switch (status) {
     case "in_progress":
