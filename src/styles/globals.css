@@ -402,4 +402,168 @@
     box-shadow: var(--hds-shadow-ambient);
     transform: translateY(-1px);
   }
+
+  /* ==========================================================
+   * NEW — Stripe-style ambient motion layer
+   * Added: 2026-05-10 (auto-motion upgrade)
+   *
+   * Layers added:
+   *   1. .hds-mesh-bg / .hds-mesh-bg-dark — drifting mesh gradient
+   *   3. .hds-marquee-track / .hds-marquee-mask — infinite logo scroll
+   *
+   * All animations use only `transform` + `opacity` for GPU
+   * acceleration, and respect prefers-reduced-motion.
+   * ========================================================== */
+
+  /* ---------- 1. Mesh gradient (light surface) ---------- */
+  @keyframes hds-mesh-drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1.1);
+    }
+    33% {
+      transform: translate3d(-3%, 2%, 0) scale(1.15);
+    }
+    66% {
+      transform: translate3d(2%, -3%, 0) scale(1.08);
+    }
+  }
+  @keyframes hds-mesh-rotate {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .hds-mesh-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .hds-mesh-bg::before,
+  .hds-mesh-bg::after {
+    content: "";
+    position: absolute;
+    inset: -25%;
+    border-radius: 50%;
+    filter: blur(60px);
+    will-change: transform;
+  }
+  .hds-mesh-bg::before {
+    background:
+      radial-gradient(
+        circle at 30% 20%,
+        rgba(83, 58, 253, 0.35),
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 70%,
+        rgba(249, 107, 238, 0.25),
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 50% 90%,
+        rgba(102, 94, 253, 0.3),
+        transparent 50%
+      );
+    animation: hds-mesh-drift 18s ease-in-out infinite;
+  }
+  .hds-mesh-bg::after {
+    background:
+      radial-gradient(
+        circle at 70% 30%,
+        rgba(234, 34, 97, 0.18),
+        transparent 55%
+      ),
+      radial-gradient(
+        circle at 20% 80%,
+        rgba(83, 58, 253, 0.22),
+        transparent 50%
+      );
+    animation: hds-mesh-rotate 24s linear infinite;
+    opacity: 0.7;
+  }
+
+  /* Dark variant for indigo sections (stats, cta, footer dark blocks) */
+  .hds-mesh-bg-dark::before {
+    background:
+      radial-gradient(
+        circle at 30% 20%,
+        rgba(83, 58, 253, 0.55),
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 70%,
+        rgba(249, 107, 238, 0.4),
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 50% 90%,
+        rgba(102, 94, 253, 0.5),
+        transparent 50%
+      );
+  }
+  .hds-mesh-bg-dark::after {
+    background:
+      radial-gradient(
+        circle at 70% 30%,
+        rgba(234, 34, 97, 0.3),
+        transparent 55%
+      ),
+      radial-gradient(
+        circle at 20% 80%,
+        rgba(83, 58, 253, 0.35),
+        transparent 50%
+      );
+  }
+
+  /* ---------- 3. Marquee — infinite horizontal scroll ---------- */
+  @keyframes hds-marquee {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  .hds-marquee-track {
+    display: flex;
+    width: max-content;
+    animation: hds-marquee 32s linear infinite;
+    will-change: transform;
+  }
+  .hds-marquee-track:hover {
+    animation-play-state: paused;
+  }
+
+  /* Edge fade mask so logos enter/exit smoothly */
+  .hds-marquee-mask {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 12%,
+      black 88%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 12%,
+      black 88%,
+      transparent 100%
+    );
+  }
+
+  /* ---------- Reduced motion safety net ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    .hds-mesh-bg::before,
+    .hds-mesh-bg::after,
+    .hds-marquee-track {
+      animation: none !important;
+    }
+  }
 }

@@ -25,7 +25,10 @@ export function CTA() {
               "rgba(50,50,93,0.25) 0px 30px 60px -20px, rgba(0,0,0,0.15) 0px 18px 36px -18px",
           }}
         >
-          {/* Decorative ruby→magenta glow accents */}
+          {/* ✨ Drifting mesh — sits at the back of the indigo block */}
+          <div className="hds-mesh-bg hds-mesh-bg-dark" aria-hidden="true" />
+
+          {/* Decorative ruby→magenta glow accents (kept — they layer on top of mesh) */}
           <motion.div
             initial={{ opacity: 0, scale: 0.7 }}
             animate={

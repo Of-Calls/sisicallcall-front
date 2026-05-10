@@ -61,7 +61,10 @@ export function Stats() {
       style={{ backgroundColor: "#1c1e54" }}
       ref={ref}
     >
-      {/* Decorative glow layers */}
+      {/* ✨ Drifting mesh — sits behind the static blur layers */}
+      <div className="hds-mesh-bg hds-mesh-bg-dark" aria-hidden="true" />
+
+      {/* Decorative glow layers (kept — they add static highlights atop the moving mesh) */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl"

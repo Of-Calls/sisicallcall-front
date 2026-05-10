@@ -10,6 +10,12 @@ const companies = [
 ];
 
 export function Logos() {
+  // Render the list twice so when the track has translated -50%,
+  // the second copy's start is at the first copy's start position.
+  // That's the trick that makes the loop seamless — there's no jump
+  // back to zero, the timeline just resets to a visually identical frame.
+  const doubled = [...companies, ...companies];
+
   return (
     <section className="border-y border-[#e5edf5] bg-[#f6f9fc] py-14">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-10">
@@ -19,20 +25,24 @@ export function Logos() {
         >
           대한민국 대표 기업들이 시시콜콜을 신뢰합니다
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 lg:gap-5">
-          {companies.map((company) => (
-            <div
-              key={company}
-              className="hds-logo-chip flex h-10 items-center justify-center px-5 text-[13px] text-[#273951]"
-              style={{
-                fontFamily: "var(--hds-font-display)",
-                fontWeight: 700,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              {company}
-            </div>
-          ))}
+
+        <div className="hds-marquee-mask overflow-hidden">
+          <div className="hds-marquee-track gap-4">
+            {doubled.map((company, idx) => (
+              <div
+                key={`${company}-${idx}`}
+                className="hds-logo-chip flex h-10 shrink-0 items-center justify-center px-5 text-[13px] text-[#273951]"
+                style={{
+                  fontFamily: "var(--hds-font-display)",
+                  fontWeight: 700,
+                  letterSpacing: "-0.01em",
+                }}
+                aria-hidden={idx >= companies.length}
+              >
+                {company}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
