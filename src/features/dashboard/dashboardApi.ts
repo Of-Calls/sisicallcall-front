@@ -6,9 +6,15 @@ import {
 import { endpoints } from "@/shared/api/endpoints"
 import {
   normalizeDashboardStats,
+  normalizeDashboardKeywordStats,
+  normalizeDashboardPriorityDistribution,
   normalizePriorityQueue,
 } from "@/features/dashboard/dashboardAdapters"
 import type {
+  DashboardKeywordStatsItem,
+  DashboardKeywordStatsParams,
+  DashboardPriorityDistributionItem,
+  DashboardPriorityDistributionParams,
   DashboardPriorityQueueData,
   DashboardPriorityQueueParams,
   DashboardRecentCallsData,
@@ -31,7 +37,13 @@ const dashboardStatKeys = [
 
 function buildDashboardSearchParams(
   params:
-    | Partial<DashboardRecentCallsParams & IntentDistributionParams & DashboardPriorityQueueParams>
+    | Partial<
+        DashboardRecentCallsParams &
+          IntentDistributionParams &
+          DashboardPriorityQueueParams &
+          DashboardKeywordStatsParams &
+          DashboardPriorityDistributionParams
+      >
     | undefined = {},
 ) {
   const searchParams = new URLSearchParams()
@@ -129,6 +141,52 @@ export async function getDashboardPriorityQueue(
   const items = normalizePriorityQueue(extractPriorityQueueItems(payload))
 
   return { items }
+}
+
+export async function getDashboardKeywordStats(
+  params?: DashboardKeywordStatsParams,
+): Promise<DashboardKeywordStatsItem[] | null> {
+  try {
+    const response = await apiFetch<
+      DashboardKeywordStatsItem[] | { data: DashboardKeywordStatsItem[] }
+    >(`${endpoints.dashboardKeywordStats}${buildDashboardSearchParams(params)}`)
+
+    const payload = unwrapApiResponse(response)
+    return normalizeDashboardKeywordStats(payload)
+  } catch (error) {
+    if (isMissingEndpointError(error)) {
+      warnInDev("Dashboard keyword stats endpoint is not available yet.", error)
+      return null
+    }
+
+    throw error
+  }
+}
+
+export async function getDashboardPriorityDistribution(
+  params?: DashboardPriorityDistributionParams,
+): Promise<DashboardPriorityDistributionItem[] | null> {
+  try {
+    const response = await apiFetch<
+      | DashboardPriorityDistributionItem[]
+      | { data: DashboardPriorityDistributionItem[] }
+    >(
+      `${endpoints.dashboardPriorityDistribution}${buildDashboardSearchParams(params)}`,
+    )
+
+    const payload = unwrapApiResponse(response)
+    return normalizeDashboardPriorityDistribution(payload)
+  } catch (error) {
+    if (isMissingEndpointError(error)) {
+      warnInDev(
+        "Dashboard priority distribution endpoint is not available yet.",
+        error,
+      )
+      return null
+    }
+
+    throw error
+  }
 }
 
 export async function getDashboardRecentCalls(

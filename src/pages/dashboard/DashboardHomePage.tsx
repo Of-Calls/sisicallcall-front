@@ -1,4 +1,4 @@
-import { useState, type ComponentType, type CSSProperties, type ReactNode } from "react";
+import { useMemo, useState, type ComponentType, type CSSProperties, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -20,10 +20,17 @@ import {
 import { AlertBanner } from "@/components/dashboard/alert-banner";
 import { CallList } from "@/components/dashboard/call-list";
 import { IntentChart } from "@/components/dashboard/intent-chart";
+import {
+  PeriodicVocSummary,
+  type VocSummaryPeriod,
+  buildVocPeriodRange,
+} from "@/components/voc/periodic-voc-summary";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useDashboardIntentDistribution,
+  useDashboardKeywordStats,
   useDashboardPriorityQueue,
+  useDashboardPriorityDistribution,
   useDashboardStats,
 } from "@/features/dashboard/dashboardQueries";
 import type {
@@ -645,13 +652,27 @@ function PriorityQueuePanel({
  * ============================================================ */
 export function DashboardHomePage() {
   const [showAlert, setShowAlert] = useState(true);
+  const [summaryPeriod, setSummaryPeriod] = useState<VocSummaryPeriod>("week");
   const statsQuery = useDashboardStats();
+  const summaryRange = useMemo(
+    () => buildVocPeriodRange(summaryPeriod),
+    [summaryPeriod],
+  );
+  const keywordStatsQuery = useDashboardKeywordStats(summaryRange);
+  const priorityDistributionQuery = useDashboardPriorityDistribution(summaryRange);
+  const summaryPriorityQueueQuery = useDashboardPriorityQueue({
+    ...summaryRange,
+    limit: 10,
+  });
   const priorityQueueQuery = useDashboardPriorityQueue();
   const intentDistributionQuery = useDashboardIntentDistribution(
     intentDistributionQueryParams,
   );
 
   const stats = statsQuery.data ?? emptyStats;
+  const keywordStats = keywordStatsQuery.data ?? [];
+  const priorityDistribution = priorityDistributionQuery.data ?? [];
+  const summaryPriorityQueueItems = summaryPriorityQueueQuery.data?.items ?? [];
   const alerts = priorityQueueQuery.data?.items ?? [];
   const intentDistribution = intentDistributionQuery.data ?? null;
   const visibleAlerts = alerts.filter((item) => {
@@ -745,9 +766,27 @@ export function DashboardHomePage() {
           />
         </section>
 
-        {/* Section: Priority queue */}
-        {/* Section: Charts row */}
+        {/* Section: VOC summary + intent chart */}
         <section className="grid gap-4 md:grid-cols-2">
+          <PeriodicVocSummary
+            period={summaryPeriod}
+            onPeriodChange={setSummaryPeriod}
+            keywordStats={keywordStats}
+            priorityDistribution={priorityDistribution}
+            priorityQueueItems={summaryPriorityQueueItems}
+            isLoading={
+              keywordStatsQuery.isLoading ||
+              priorityDistributionQuery.isLoading ||
+              summaryPriorityQueueQuery.isLoading
+            }
+            error={
+              keywordStatsQuery.error ??
+              priorityDistributionQuery.error ??
+              summaryPriorityQueueQuery.error ??
+              null
+            }
+          />
+
           <IntentChart
             data={intentDistribution}
             isLoading={intentDistributionQuery.isLoading}

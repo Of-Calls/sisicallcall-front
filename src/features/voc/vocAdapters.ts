@@ -3,20 +3,19 @@ import type {
   VocKeywordStatsResponse,
   VocKeywordStatsResponseItem,
   VocPriorityDistributionItem,
-  VocPriorityDistributionRecord,
   VocPriorityDistributionResponseItem,
   VocPriorityLevel,
 } from "@/features/voc/vocTypes"
 
 const priorityLabelMap: Record<VocPriorityLevel, string> = {
-  critical: "긴급",
+  urgent: "긴급",
   high: "높음",
   medium: "보통",
   low: "낮음",
 }
 
 const priorityOrder: VocPriorityLevel[] = [
-  "critical",
+  "urgent",
   "high",
   "medium",
   "low",
@@ -45,8 +44,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null
 }
 
-function isPriorityLevel(value: string): value is VocPriorityLevel {
-  return priorityOrder.includes(value as VocPriorityLevel)
+function normalizePriorityLevel(value: string): VocPriorityLevel | null {
+  if (value === "critical" || value === "urgent") return "urgent"
+  if (value === "high") return "high"
+  if (value === "medium" || value === "normal") return "medium"
+  if (value === "low") return "low"
+  return null
 }
 
 function normalizeKeywordItem(
@@ -89,9 +92,11 @@ export function normalizeVocPriorityDistribution(
     return payload
       .map((item) => {
         const record = item as VocPriorityDistributionResponseItem
-        const priority = toString(record.priority).toLowerCase()
+        const priority = normalizePriorityLevel(
+          toString(record.priority).toLowerCase(),
+        )
 
-        if (!isPriorityLevel(priority)) {
+        if (!priority) {
           return null
         }
 
@@ -104,13 +109,20 @@ export function normalizeVocPriorityDistribution(
       .filter((item): item is VocPriorityDistributionItem => item !== null)
   }
 
-  const record = isRecord(payload)
-    ? (payload as VocPriorityDistributionRecord)
-    : {}
+  const record = isRecord(payload) ? (payload as Record<string, unknown>) : {}
 
-  return priorityOrder.map((priority) => ({
-    priority,
-    label: priorityLabelMap[priority],
-    count: toNumber(record[priority]),
-  }))
+  return priorityOrder.map((priority) => {
+    const count =
+      priority === "urgent"
+        ? toNumber(record.urgent ?? record.critical)
+        : priority === "medium"
+          ? toNumber(record.medium ?? record.normal)
+          : toNumber(record[priority])
+
+    return {
+      priority,
+      label: priorityLabelMap[priority],
+      count,
+    }
+  })
 }

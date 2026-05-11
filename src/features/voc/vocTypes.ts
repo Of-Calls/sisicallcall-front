@@ -10,15 +10,21 @@ export type VocKeywordStatsResponse = {
   request_id?: string
 }
 
+export type VocKeywordStatsParams = {
+  from?: string
+  to?: string
+  limit?: number
+}
+
 export type VocKeywordStatsItem = {
   keyword: string
   count: number
 }
 
-export type VocPriorityLevel = "critical" | "high" | "medium" | "low"
+export type VocPriorityLevel = "urgent" | "high" | "medium" | "low"
 
 export type VocPriorityDistributionRecord = Partial<
-  Record<VocPriorityLevel, number | string>
+  Record<VocPriorityLevel | "critical" | "normal", number | string>
 >
 
 export type VocPriorityDistributionResponseItem = {
@@ -31,4 +37,9 @@ export type VocPriorityDistributionItem = {
   priority: VocPriorityLevel
   label: string
   count: number
+}
+
+export type VocPriorityDistributionParams = {
+  from?: string
+  to?: string
 }

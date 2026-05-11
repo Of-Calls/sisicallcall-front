@@ -9,10 +9,27 @@ import {
   normalizeVocPriorityDistribution,
 } from "@/features/voc/vocAdapters"
 import type {
+  VocKeywordStatsParams,
   VocKeywordStatsResponse,
+  VocPriorityDistributionParams,
   VocPriorityDistributionRecord,
   VocPriorityDistributionResponseItem,
 } from "@/features/voc/vocTypes"
+
+function buildVocSearchParams(
+  params: VocKeywordStatsParams | VocPriorityDistributionParams | undefined = {},
+) {
+  const searchParams = new URLSearchParams()
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined) {
+      searchParams.set(key, String(value))
+    }
+  })
+
+  const queryString = searchParams.toString()
+  return queryString ? `?${queryString}` : ""
+}
 
 function isMissingEndpointError(error: unknown) {
   return (
@@ -44,11 +61,13 @@ function resolvePriorityDistributionPayload(payload: unknown) {
   return normalizeVocPriorityDistribution(unwrapApiResponse(payload))
 }
 
-export async function getVocKeywordStats() {
+export async function getVocKeywordStats(
+  params?: VocKeywordStatsParams,
+) {
   try {
     const response = await apiFetch<
       VocKeywordStatsResponse | { data: VocKeywordStatsResponse["data"] }
-    >(endpoints.dashboardKeywordStats)
+    >(`${endpoints.dashboardKeywordStats}${buildVocSearchParams(params)}`)
 
     return resolveKeywordStatsPayload(response)
   } catch (error) {
@@ -61,13 +80,17 @@ export async function getVocKeywordStats() {
   }
 }
 
-export async function getVocPriorityDistribution() {
+export async function getVocPriorityDistribution(
+  params?: VocPriorityDistributionParams,
+) {
   try {
     const response = await apiFetch<
       | VocPriorityDistributionRecord
       | VocPriorityDistributionResponseItem[]
       | { data: VocPriorityDistributionRecord | VocPriorityDistributionResponseItem[] }
-    >(endpoints.dashboardPriorityDistribution)
+    >(
+      `${endpoints.dashboardPriorityDistribution}${buildVocSearchParams(params)}`,
+    )
 
     return resolvePriorityDistributionPayload(response)
   } catch (error) {

@@ -1,11 +1,15 @@
 import { useQuery } from "@tanstack/react-query"
 import {
   getDashboardIntentDistribution,
+  getDashboardKeywordStats,
   getDashboardPriorityQueue,
+  getDashboardPriorityDistribution,
   getDashboardRecentCalls,
   getDashboardStats,
 } from "@/features/dashboard/dashboardApi"
 import type {
+  DashboardKeywordStatsParams,
+  DashboardPriorityDistributionParams,
   DashboardPriorityQueueParams,
   DashboardRecentCallsParams,
   IntentDistributionParams,
@@ -22,6 +26,24 @@ export function useDashboardPriorityQueue(params?: DashboardPriorityQueueParams)
   return useQuery({
     queryKey: ["dashboard", "priority-queue", params],
     queryFn: () => getDashboardPriorityQueue(params),
+  })
+}
+
+export function useDashboardKeywordStats(params?: DashboardKeywordStatsParams) {
+  return useQuery({
+    queryKey: ["dashboard", "keyword-stats", params],
+    queryFn: () => getDashboardKeywordStats(params),
+    retry: false,
+  })
+}
+
+export function useDashboardPriorityDistribution(
+  params?: DashboardPriorityDistributionParams,
+) {
+  return useQuery({
+    queryKey: ["dashboard", "priority-distribution", params],
+    queryFn: () => getDashboardPriorityDistribution(params),
+    retry: false,
   })
 }
 

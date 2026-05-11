@@ -478,9 +478,10 @@ function DocumentRow({
           variant={isSelected ? "primary" : "neutral"}
           disabled={isActionDisabled}
           onClick={onOpen}
+          className="whitespace-nowrap min-w-[92px]"
         >
           <Pencil className="h-3 w-3" />
-          내용 보기
+          보기
         </HdsButton>
       </td>
       <td className="px-4 py-3">
@@ -1136,7 +1137,7 @@ export function KnowledgePage() {
     { label: "등록일", className: "w-[160px]" },
     { label: "준비 상태", className: "w-[120px]" },
     { label: "항목 수", className: "w-[100px]" },
-    { label: "내용 보기", className: "w-[120px]" },
+    { label: "보기", className: "w-[92px]" },
     { label: "삭제", className: "w-[100px]" },
   ] as const;
 

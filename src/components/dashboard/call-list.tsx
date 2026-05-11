@@ -9,11 +9,10 @@ import { cn } from "@/lib/utils"
 import { getResolutionStatusLabel } from "@/features/calls/callsAdapters"
 
 const priorityLabels: Record<string, string> = {
-  critical: "Critical",
-  high: "High",
-  medium: "Medium",
-  normal: "Normal",
-  low: "Low",
+  urgent: "긴급",
+  high: "높음",
+  medium: "보통",
+  low: "낮음",
 }
 
 type BadgeTone = "info" | "success" | "warning" | "error" | "neutral"
@@ -68,11 +67,12 @@ function StatusBadge({
 }
 
 function PriorityBadge({ priority }: { priority: string | null }) {
-  const priorityKey = priority?.toLowerCase() ?? "normal"
-  const label = priorityLabels[priorityKey] ?? priority ?? "Normal"
+  const priorityKey = priority?.toLowerCase() ?? "low"
+  const label = priorityLabels[priorityKey] ?? priority ?? "낮음"
 
-  if (priorityKey === "critical") return <StatusBadge tone="error">{label}</StatusBadge>
+  if (priorityKey === "urgent") return <StatusBadge tone="error">{label}</StatusBadge>
   if (priorityKey === "high") return <StatusBadge tone="warning">{label}</StatusBadge>
+  if (priorityKey === "medium") return <StatusBadge tone="info">{label}</StatusBadge>
   return <StatusBadge tone="neutral">{label}</StatusBadge>
 }
 

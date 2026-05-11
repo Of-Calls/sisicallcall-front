@@ -133,16 +133,16 @@ export function Hero() {
             transition={{ duration: 0.85, delay: 0.2, ease: easeOut }}
             className="relative flex items-center justify-center lg:justify-end"
           >
-            {/* Decorative glow blobs — drift with hds-blob-* */}
+            {/* Decorative glow blobs — drift with hds-blob-* (strengthened) */}
             <div
               aria-hidden="true"
               className="hds-blob-a pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full blur-3xl"
-              style={{ backgroundColor: "rgba(83,58,253,0.18)" }}
+              style={{ backgroundColor: "rgba(83,58,253,0.40)" }}
             />
             <div
               aria-hidden="true"
               className="hds-blob-b pointer-events-none absolute -bottom-10 -left-6 h-40 w-40 rounded-full blur-3xl"
-              style={{ backgroundColor: "rgba(249,107,238,0.18)" }}
+              style={{ backgroundColor: "rgba(249,107,238,0.40)" }}
             />
 
             <div className="hds-mockup-window relative w-full max-w-[520px] overflow-hidden">

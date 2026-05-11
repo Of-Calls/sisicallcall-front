@@ -19,6 +19,50 @@ export type DashboardOverview = {
   partialSuccessCount: number
 }
 
+export type DashboardKeywordStatsResponseItem = {
+  keyword?: string
+  label?: string
+  count?: number | string
+}
+
+export type DashboardKeywordStatsItem = {
+  keyword: string
+  count: number
+}
+
+export type DashboardKeywordStatsParams = {
+  limit?: number
+  from?: string
+  to?: string
+}
+
+export type DashboardPriorityLevel =
+  | "urgent"
+  | "high"
+  | "medium"
+  | "low"
+
+export type DashboardPriorityDistributionRecord = Partial<
+  Record<DashboardPriorityLevel | "critical" | "normal", number | string>
+>
+
+export type DashboardPriorityDistributionResponseItem = {
+  priority?: string
+  label?: string
+  count?: number | string
+}
+
+export type DashboardPriorityDistributionItem = {
+  priority: DashboardPriorityLevel
+  label: string
+  count: number
+}
+
+export type DashboardPriorityDistributionParams = {
+  from?: string
+  to?: string
+}
+
 export type PriorityQueueItem = {
   id?: string
   call_id?: string
@@ -27,6 +71,8 @@ export type PriorityQueueItem = {
   reason?: string
   summary_short?: string
   primary_category?: string | null
+  suggested_action?: string
+  keywords?: string[]
   priority?: string
   created_at?: string
   action_required?: boolean
@@ -35,6 +81,7 @@ export type PriorityQueueItem = {
   actionRequired?: boolean
   resolutionStatus?: "resolved" | "escalated" | "abandoned" | null
   followUpRequired?: boolean
+  suggestedAction?: string
   [key: string]: unknown
 }
 
@@ -46,7 +93,9 @@ export type DashboardAlert = {
   reason: string
   summaryShort?: string
   primaryCategory?: string | null
-  priority: string
+  suggestedAction?: string
+  keywords?: string[]
+  priority: DashboardPriorityLevel
   createdAt: string
   actionRequired?: boolean
   resolutionStatus?: "resolved" | "escalated" | "abandoned" | null
@@ -86,6 +135,8 @@ export type DashboardRecentCallsParams = {
 export type DashboardPriorityQueueParams = {
   limit?: number
   offset?: number
+  from?: string
+  to?: string
 }
 
 export type IntentDistributionItem = {
