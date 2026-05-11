@@ -74,6 +74,17 @@ const cardVariants = {
   },
 };
 
+/**
+ * Mouse-tracking spotlight handler — writes pointer offset to CSS vars
+ * `--mx` / `--my`. See features.tsx for the long-form explanation.
+ * Module-scope so it's shared across all three plan cards.
+ */
+function handleSpotlight(e: React.MouseEvent<HTMLDivElement>) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  e.currentTarget.style.setProperty("--mx", `${e.clientX - rect.left}px`);
+  e.currentTarget.style.setProperty("--my", `${e.clientY - rect.top}px`);
+}
+
 export function Pricing() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -115,8 +126,9 @@ export function Pricing() {
               <motion.div
                 key={plan.name}
                 variants={cardVariants}
+                onMouseMove={handleSpotlight}
                 className={cn(
-                  "relative flex h-full flex-col rounded-[8px] bg-white p-8 transition-all duration-300",
+                  "hds-spotlight-card relative flex h-full flex-col rounded-[8px] bg-white p-8 transition-all duration-300",
                   isHighlighted
                     ? "border-[1.5px] border-[#533afd]"
                     : "border border-[#e5edf5]",

@@ -64,15 +64,15 @@ export function Stats() {
       {/* ✨ Drifting mesh — sits behind the static blur layers */}
       <div className="hds-mesh-bg hds-mesh-bg-dark" aria-hidden="true" />
 
-      {/* Decorative glow layers (kept — they add static highlights atop the moving mesh) */}
+      {/* Decorative glow layers — now slow-drift atop the moving mesh */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl"
+        className="hds-blob-slow-a pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full blur-3xl"
         style={{ backgroundColor: "rgba(83,58,253,0.35)" }}
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl"
+        className="hds-blob-slow-b pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full blur-3xl"
         style={{ backgroundColor: "rgba(249,107,238,0.18)" }}
       />
       {/* Subtle grid */}

@@ -9,10 +9,11 @@ import {
   normalizePriorityQueue,
 } from "@/features/dashboard/dashboardAdapters"
 import type {
+  DashboardPriorityQueueData,
+  DashboardPriorityQueueParams,
   DashboardRecentCallsData,
   DashboardRecentCallsParams,
   DashboardStatsResponse,
-  EmotionDistribution,
   IntentDistributionItem,
   IntentDistributionParams,
   PriorityQueueItem,
@@ -29,7 +30,9 @@ const dashboardStatKeys = [
 ] as const
 
 function buildDashboardSearchParams(
-  params: Partial<DashboardRecentCallsParams & IntentDistributionParams> = {},
+  params:
+    | Partial<DashboardRecentCallsParams & IntentDistributionParams & DashboardPriorityQueueParams>
+    | undefined = {},
 ) {
   const searchParams = new URLSearchParams()
 
@@ -45,6 +48,26 @@ function buildDashboardSearchParams(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null
+}
+
+function extractPriorityQueueItems(payload: unknown): PriorityQueueItem[] {
+  if (Array.isArray(payload)) {
+    return payload
+  }
+
+  if (isRecord(payload) && Array.isArray(payload.items)) {
+    return payload.items as PriorityQueueItem[]
+  }
+
+  if (
+    isRecord(payload) &&
+    isRecord(payload.data) &&
+    Array.isArray(payload.data.items)
+  ) {
+    return payload.data.items as PriorityQueueItem[]
+  }
+
+  return []
 }
 
 function isMissingEndpointError(error: unknown) {
@@ -82,19 +105,6 @@ function validateDashboardStatsPayload(payload: Record<string, unknown>) {
   }
 }
 
-function toCount(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number(value)
-    return Number.isFinite(parsed) ? parsed : 0
-  }
-
-  return 0
-}
-
 export async function getDashboardStats() {
   const response = await apiFetch<DashboardStatsResponse | { data: DashboardStatsResponse }>(
     endpoints.dashboardStats,
@@ -109,13 +119,16 @@ export async function getDashboardStats() {
   return normalizeDashboardStats(payload)
 }
 
-export async function getDashboardPriorityQueue() {
+export async function getDashboardPriorityQueue(
+  params?: DashboardPriorityQueueParams,
+): Promise<DashboardPriorityQueueData> {
   const response = await apiFetch<PriorityQueueItem[] | { data: PriorityQueueItem[] }>(
-    endpoints.dashboardPriorityQueue,
+    `${endpoints.dashboardPriorityQueue}${buildDashboardSearchParams(params)}`,
   )
   const payload = unwrapApiResponse(response)
+  const items = normalizePriorityQueue(extractPriorityQueueItems(payload))
 
-  return normalizePriorityQueue(Array.isArray(payload) ? payload : [])
+  return { items }
 }
 
 export async function getDashboardRecentCalls(
@@ -145,22 +158,5 @@ export async function getDashboardIntentDistribution(
     }
 
     throw error
-  }
-}
-
-export async function getDashboardEmotionDistribution() {
-  const response = await apiFetch<
-    EmotionDistribution | { data: EmotionDistribution }
-  >(endpoints.dashboardEmotionDistribution)
-  const payload = expectObject<EmotionDistribution>(
-    unwrapApiResponse(response),
-    "감정 분포 응답 형식이 올바르지 않습니다.",
-  )
-
-  return {
-    positive: toCount(payload.positive),
-    neutral: toCount(payload.neutral),
-    negative: toCount(payload.negative),
-    angry: toCount(payload.angry),
   }
 }

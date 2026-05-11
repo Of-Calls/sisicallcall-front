@@ -89,6 +89,24 @@ const cardVariants = {
   },
 };
 
+/**
+ * Mouse-tracking spotlight handler.
+ *
+ * Writes pointer coordinates (relative to the card's top-left corner)
+ * to CSS variables `--mx` and `--my`. The actual glow is rendered by
+ * `.hds-spotlight-card::before` reading those vars. Using CSS vars
+ * (not React state) means rapid mouse movement doesn't trigger
+ * reconciliation — the browser just repaints the gradient origin.
+ *
+ * Defined at module scope so React doesn't recreate the function on
+ * every render across all six cards.
+ */
+function handleSpotlight(e: React.MouseEvent<HTMLDivElement>) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  e.currentTarget.style.setProperty("--mx", `${e.clientX - rect.left}px`);
+  e.currentTarget.style.setProperty("--my", `${e.clientY - rect.top}px`);
+}
+
 export function Features() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -130,7 +148,8 @@ export function Features() {
             <motion.div
               key={feature.title}
               variants={cardVariants}
-              className="hds-card hds-card-hover group h-full p-7"
+              onMouseMove={handleSpotlight}
+              className="hds-card hds-card-hover hds-spotlight-card group h-full p-7"
             >
               <div
                 className="mb-5 flex h-11 w-11 items-center justify-center rounded-[6px] transition-colors duration-300"

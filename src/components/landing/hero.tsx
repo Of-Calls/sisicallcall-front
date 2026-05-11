@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowUpRight,
   BarChart3,
@@ -14,124 +13,7 @@ const logoSrc =
 
 const easeOut = [0.22, 1, 0.36, 1] as const;
 
-/* ---------- Live KPI hook ----------
- *
- * Drives the "this dashboard is alive" feeling. Every `intervalMs` ms
- * the value re-rolls via the supplied `drift` fn. The render uses
- * `key={value}` so framer-motion remounts the text node and runs the
- * subtle fade-in transition again — that's the visible flicker that
- * sells the live-update effect.
- */
-function useLiveKpi(initial: string, drift: () => string, intervalMs: number) {
-  const [value, setValue] = useState(initial);
-  useEffect(() => {
-    const id = setInterval(() => setValue(drift()), intervalMs);
-    return () => clearInterval(id);
-  }, [drift, intervalMs]);
-  return value;
-}
-
-/* ---------- Call pool for the live list ----------
- *
- * The hero's mock call list cycles through these. Every ~4s the next
- * entry slides in at the top and the bottom row exits.
- */
-type CallTone = "info" | "success" | "magenta";
-type CallIcon = "phone" | "headphone" | "chart";
-type LiveCall = {
-  id: number;
-  icon: CallIcon;
-  title: string;
-  meta: string;
-  tag: string;
-  tagTone: CallTone;
-};
-
-const callPool: Omit<LiveCall, "id">[] = [
-  {
-    icon: "phone",
-    title: "010-****-2841",
-    meta: "AI 응답 · 02:14",
-    tag: "진행중",
-    tagTone: "info",
-  },
-  {
-    icon: "headphone",
-    title: "010-****-9032",
-    meta: "상담원 연결 · 04:52",
-    tag: "이관됨",
-    tagTone: "magenta",
-  },
-  {
-    icon: "chart",
-    title: "010-****-1107",
-    meta: "VOC 분석 · 완료",
-    tag: "완료",
-    tagTone: "success",
-  },
-  {
-    icon: "phone",
-    title: "010-****-5526",
-    meta: "AI 응답 · 00:38",
-    tag: "진행중",
-    tagTone: "info",
-  },
-  {
-    icon: "phone",
-    title: "010-****-3318",
-    meta: "예약 처리 · 01:22",
-    tag: "완료",
-    tagTone: "success",
-  },
-  {
-    icon: "headphone",
-    title: "010-****-7704",
-    meta: "상담원 연결 · 02:08",
-    tag: "이관됨",
-    tagTone: "magenta",
-  },
-];
-
 export function Hero() {
-  /* ---- Live KPIs ---- */
-  const liveCallCount = useLiveKpi(
-    "1,284",
-    () => (1280 + Math.floor(Math.random() * 12)).toLocaleString("ko-KR"),
-    3500,
-  );
-  const liveResponseTime = useLiveKpi(
-    "3.1초",
-    () => `${(2.8 + Math.random() * 0.6).toFixed(1)}초`,
-    4200,
-  );
-  const liveSatisfaction = useLiveKpi(
-    "95%",
-    () => `${94 + Math.floor(Math.random() * 3)}%`,
-    5000,
-  );
-
-  /* ---- Live call list (3 visible at a time) ---- */
-  const [visibleCalls, setVisibleCalls] = useState<LiveCall[]>(() =>
-    callPool.slice(0, 3).map((c, i) => ({ ...c, id: i })),
-  );
-
-  useEffect(() => {
-    let poolIdx = 3;
-    let nextId = 100; // distinct from initial 0..2
-    const tick = setInterval(() => {
-      setVisibleCalls((prev) => {
-        const incoming: LiveCall = {
-          ...callPool[poolIdx % callPool.length],
-          id: nextId++,
-        };
-        poolIdx++;
-        // Insert at top, drop the bottom — keeps list at 3 items
-        return [incoming, ...prev.slice(0, 2)];
-      });
-    }, 4000);
-    return () => clearInterval(tick);
-  }, []);
-
   return (
     <section className="hds-hero-surface relative w-full overflow-hidden">
       {/* ✨ Drifting mesh gradient — sits behind everything else */}
@@ -251,15 +133,15 @@ export function Hero() {
             transition={{ duration: 0.85, delay: 0.2, ease: easeOut }}
             className="relative flex items-center justify-center lg:justify-end"
           >
-            {/* Decorative glow blobs (still static — drift comes from the mesh layer behind) */}
+            {/* Decorative glow blobs — drift with hds-blob-* */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full blur-3xl"
+              className="hds-blob-a pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full blur-3xl"
               style={{ backgroundColor: "rgba(83,58,253,0.18)" }}
             />
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute -bottom-10 -left-6 h-40 w-40 rounded-full blur-3xl"
+              className="hds-blob-b pointer-events-none absolute -bottom-10 -left-6 h-40 w-40 rounded-full blur-3xl"
               style={{ backgroundColor: "rgba(249,107,238,0.18)" }}
             />
 
@@ -293,29 +175,29 @@ export function Hero() {
 
               {/* Mock content */}
               <div className="space-y-4 p-5">
-                {/* KPI tiles — values re-roll on a timer */}
+                {/* KPI tiles — static */}
                 <div className="grid grid-cols-3 gap-3">
                   <KpiTile
                     label="오늘 상담"
-                    value={liveCallCount}
+                    value="1,284"
                     delta="+12.4%"
                     accent="#533afd"
                   />
                   <KpiTile
                     label="평균 응답"
-                    value={liveResponseTime}
+                    value="3.1초"
                     delta="-0.4s"
                     accent="#15be53"
                   />
                   <KpiTile
                     label="만족도"
-                    value={liveSatisfaction}
+                    value="95%"
                     delta="+2.1%"
                     accent="#f96bee"
                   />
                 </div>
 
-                {/* Live calls list — rows slide in at top, drop at bottom */}
+                {/* Calls list — static three rows (no row rotation, no height jitter) */}
                 <div className="rounded-[6px] border border-[#e5edf5] bg-white">
                   <div className="flex items-center justify-between border-b border-[#e5edf5] bg-[#f6f9fc] px-3 py-2">
                     <span
@@ -332,26 +214,28 @@ export function Hero() {
                       LIVE
                     </span>
                   </div>
-
                   <ul className="divide-y divide-[#e5edf5]">
-                    <AnimatePresence initial={false}>
-                      {visibleCalls.map((call) => (
-                        <motion.li
-                          key={call.id}
-                          layout
-                          initial={{ opacity: 0, height: 0, y: -6 }}
-                          animate={{ opacity: 1, height: "auto", y: 0 }}
-                          exit={{ opacity: 0, height: 0, y: 8 }}
-                          transition={{
-                            duration: 0.42,
-                            ease: easeOut,
-                          }}
-                          className="overflow-hidden"
-                        >
-                          <CallRowInner {...call} />
-                        </motion.li>
-                      ))}
-                    </AnimatePresence>
+                    <CallRow
+                      icon={<PhoneCall className="h-3.5 w-3.5" />}
+                      title="010-****-2841"
+                      meta="AI 응답 · 02:14"
+                      tag="진행중"
+                      tagTone="info"
+                    />
+                    <CallRow
+                      icon={<Headphones className="h-3.5 w-3.5" />}
+                      title="010-****-9032"
+                      meta="상담원 연결 · 04:52"
+                      tag="이관됨"
+                      tagTone="magenta"
+                    />
+                    <CallRow
+                      icon={<BarChart3 className="h-3.5 w-3.5" />}
+                      title="010-****-1107"
+                      meta="VOC 분석 · 완료"
+                      tag="완료"
+                      tagTone="success"
+                    />
                   </ul>
                 </div>
 
@@ -398,17 +282,12 @@ function KpiTile({
       >
         {label}
       </p>
-      {/* key={value} forces remount on each tick → fade-in re-runs */}
-      <motion.p
-        key={value}
-        initial={{ opacity: 0.35, y: -3 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: easeOut }}
+      <p
         className="hds-tnum mt-1 text-[18px] tracking-[-0.01em] text-[#061b31]"
         style={{ fontFamily: "var(--hds-font-display)", fontWeight: 700 }}
       >
         {value}
-      </motion.p>
+      </p>
       <p
         className="hds-tnum mt-0.5 text-[10px]"
         style={{
@@ -423,23 +302,18 @@ function KpiTile({
   );
 }
 
-/**
- * Inner row content — rendered inside a motion.li.
- * Note: the parent <motion.li> handles enter/exit, so this stays a plain
- * div (no extra <li> nesting).
- */
-function CallRowInner({
+function CallRow({
   icon,
   title,
   meta,
   tag,
   tagTone,
 }: {
-  icon: CallIcon;
+  icon: React.ReactNode;
   title: string;
   meta: string;
   tag: string;
-  tagTone: CallTone;
+  tagTone: "info" | "success" | "magenta";
 }) {
   const tagClass =
     tagTone === "info"
@@ -448,20 +322,11 @@ function CallRowInner({
         ? "hds-badge hds-badge-success"
         : "hds-badge hds-badge-magenta";
 
-  const IconNode =
-    icon === "phone" ? (
-      <PhoneCall className="h-3.5 w-3.5" />
-    ) : icon === "headphone" ? (
-      <Headphones className="h-3.5 w-3.5" />
-    ) : (
-      <BarChart3 className="h-3.5 w-3.5" />
-    );
-
   return (
-    <div className="flex items-center justify-between px-3 py-2">
+    <li className="flex items-center justify-between px-3 py-2">
       <div className="flex items-center gap-2.5">
         <span className="flex h-7 w-7 items-center justify-center rounded-[4px] bg-[#f6f9fc] text-[#533afd]">
-          {IconNode}
+          {icon}
         </span>
         <div>
           <p
@@ -479,6 +344,6 @@ function CallRowInner({
         </div>
       </div>
       <span className={`${tagClass} !py-0.5 !text-[10px]`}>{tag}</span>
-    </div>
+    </li>
   );
 }

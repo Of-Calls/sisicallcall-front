@@ -10,7 +10,6 @@ export const endpoints = {
   dashboardPriorityQueue: "/dashboard/priority-queue",
   dashboardRecentCalls: "/dashboard/recent-calls",
   dashboardIntentDistribution: "/dashboard/intent-distribution",
-  dashboardEmotionDistribution: "/dashboard/emotion-distribution",
   dashboardKeywordStats: "/dashboard/keyword-stats",
   dashboardPriorityDistribution: "/dashboard/priority-distribution",
 

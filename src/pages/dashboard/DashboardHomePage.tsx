@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ComponentType, type CSSProperties, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -20,22 +20,17 @@ import {
 import { AlertBanner } from "@/components/dashboard/alert-banner";
 import { CallList } from "@/components/dashboard/call-list";
 import { IntentChart } from "@/components/dashboard/intent-chart";
-import { SentimentChart } from "@/components/dashboard/sentiment-chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  useDashboardEmotionDistribution,
   useDashboardIntentDistribution,
   useDashboardPriorityQueue,
-  useDashboardRecentCalls,
   useDashboardStats,
 } from "@/features/dashboard/dashboardQueries";
 import type {
   DashboardAlert,
-  EmotionDistribution,
   DashboardOverview,
 } from "@/features/dashboard/dashboardTypes";
 
-const recentCallsQueryParams = { limit: 10, offset: 0 } as const;
 const intentDistributionQueryParams = { limit: 5 } as const;
 
 const emptyStats: DashboardOverview = {
@@ -47,13 +42,6 @@ const emptyStats: DashboardOverview = {
   mcpSuccessCount: 0,
   mcpFailedCount: 0,
   partialSuccessCount: 0,
-};
-
-const emptyEmotionDistribution: EmotionDistribution = {
-  positive: 0,
-  neutral: 0,
-  negative: 0,
-  angry: 0,
 };
 
 function formatPercent(value: number) {
@@ -173,14 +161,14 @@ type MetricCardProps = {
   label: string;
   value: string;
   hint?: string;
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  icon: ComponentType<{ className?: string; strokeWidth?: number }>;
   iconTone?: "primary" | "success" | "warning" | "error" | "neutral";
   delta?: { value: string; tone: DeltaTone };
 };
 
 const iconToneStyles: Record<
   NonNullable<MetricCardProps["iconTone"]>,
-  React.CSSProperties
+  CSSProperties
 > = {
   primary: {
     color: "#533afd",
@@ -458,7 +446,7 @@ function PriorityQueuePanel({
   isLoading: boolean;
   error: Error | null;
 }) {
-  const Shell = ({ children }: { children: React.ReactNode }) => (
+  const Shell = ({ children }: { children: ReactNode }) => (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -659,19 +647,21 @@ export function DashboardHomePage() {
   const [showAlert, setShowAlert] = useState(true);
   const statsQuery = useDashboardStats();
   const priorityQueueQuery = useDashboardPriorityQueue();
-  const recentCallsQuery = useDashboardRecentCalls(recentCallsQueryParams);
   const intentDistributionQuery = useDashboardIntentDistribution(
     intentDistributionQueryParams,
   );
-  const emotionDistributionQuery = useDashboardEmotionDistribution();
 
   const stats = statsQuery.data ?? emptyStats;
-  const alerts = priorityQueueQuery.data ?? [];
-  const recentCalls = recentCallsQuery.data?.items ?? [];
+  const alerts = priorityQueueQuery.data?.items ?? [];
   const intentDistribution = intentDistributionQuery.data ?? null;
-  const emotionDistribution =
-    emotionDistributionQuery.data ?? emptyEmotionDistribution;
-  const visibleAlertCount = alerts.length;
+  const visibleAlerts = alerts.filter((item) => {
+    if (typeof item.followUpRequired === "boolean") {
+      return item.followUpRequired;
+    }
+
+    return true;
+  });
+  const visibleAlertCount = visibleAlerts.length;
 
   return (
     <div
@@ -756,21 +746,8 @@ export function DashboardHomePage() {
         </section>
 
         {/* Section: Priority queue */}
-        <section>
-          <PriorityQueuePanel
-            alerts={alerts}
-            isLoading={priorityQueueQuery.isLoading}
-            error={priorityQueueQuery.error}
-          />
-        </section>
-
         {/* Section: Charts row */}
         <section className="grid gap-4 md:grid-cols-2">
-          <SentimentChart
-            data={emotionDistribution}
-            isLoading={emotionDistributionQuery.isLoading}
-            error={emotionDistributionQuery.error}
-          />
           <IntentChart
             data={intentDistribution}
             isLoading={intentDistributionQuery.isLoading}
@@ -785,11 +762,7 @@ export function DashboardHomePage() {
 
         {/* Section: Recent calls table */}
         <section>
-          <CallList
-            calls={recentCalls}
-            isLoading={recentCallsQuery.isLoading}
-            error={recentCallsQuery.error}
-          />
+          <CallList />
         </section>
       </div>
     </div>

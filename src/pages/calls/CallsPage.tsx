@@ -89,14 +89,20 @@ function getStatusBadgeTone(
 }
 
 /* MCP provider → token tone (we drop ad-hoc colors per the spec) */
+function getMcpActionKey(action: McpActionLog): string {
+  return action.action_detail ?? action.action_type ?? ""
+}
+
 function getMcpProviderBadgeTone(
-  actionType: string,
+  actionKey: string,
 ): "info" | "success" | "warning" | "error" | "neutral" {
-  switch (actionType) {
+  switch (actionKey) {
     case "gmail":
       return "error"; // Gmail = brand red → semantic-error tinted
     case "calendar":
       return "info";
+    case "slack":
+      return "neutral";
     case "company_db":
       return "success";
     default:
@@ -105,16 +111,18 @@ function getMcpProviderBadgeTone(
 }
 
 /* MCP provider key → human-friendly label (사용자에게 보여주는 이름) */
-function getMcpProviderLabel(actionType: string): string {
-  switch (actionType) {
+function getMcpProviderLabel(actionKey: string): string {
+  switch (actionKey) {
     case "gmail":
       return "Gmail";
     case "calendar":
       return "Google Calendar";
+    case "slack":
+      return "Slack";
     case "company_db":
       return "사내 DB";
     default:
-      return actionType;
+      return actionKey || "알 수 없는 액션";
   }
 }
 
@@ -126,6 +134,19 @@ function getMcpStatusTone(
 
 function getMcpStatusLabel(status: McpActionStatus | string): string {
   return status === "success" ? "성공" : "실패";
+}
+
+function getMcpActionMessage(action: McpActionLog): string {
+  const actionKey = getMcpActionKey(action)
+
+  if (action.status === "success") {
+    if (actionKey === "gmail") return "GMail에 메일 보내기 성공"
+    if (actionKey === "slack") return "Slack에 메시지 보내기 성공"
+    if (actionKey === "calendar")
+      return "Google Calendar에 예약 내역 저장 성공"
+  }
+
+  return actionKey || "알 수 없는 액션"
 }
 
 function CallsTableSkeleton() {
@@ -199,7 +220,8 @@ function McpActionLogsSection({
       ) : (
         <div className="space-y-3">
           {actions.map((action) => {
-            const providerLabel = getMcpProviderLabel(action.action_type);
+            const actionKey = getMcpActionKey(action)
+            const providerLabel = getMcpProviderLabel(actionKey);
 
             return (
               <div
@@ -211,7 +233,7 @@ function McpActionLogsSection({
                 }}
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge tone={getMcpProviderBadgeTone(action.action_type)}>
+                  <StatusBadge tone={getMcpProviderBadgeTone(actionKey)}>
                     {providerLabel}
                   </StatusBadge>
                   <StatusBadge tone={getMcpStatusTone(action.status)}>
@@ -225,7 +247,18 @@ function McpActionLogsSection({
                   </span>
                 </div>
 
-                {action.status !== "success" && action.error_message ? (
+                {action.status === "success" ? (
+                  <p
+                    className="mt-2 text-[12.5px]"
+                    style={{
+                      color: "#273951",
+                      fontWeight: 500,
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    {getMcpActionMessage(action)}
+                  </p>
+                ) : action.error_message ? (
                   <p
                     className="mt-2 rounded-[6px] px-3 py-2 text-[12.5px]"
                     style={{

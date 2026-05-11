@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { motion } from "framer-motion";
-import { BarChart3, Hash, TrendingUp } from "lucide-react";
+import { BarChart3, Hash } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -18,27 +18,15 @@ import {
   PageShell,
   PageTopbar,
   SectionHeader,
-  StatusBadge,
 } from "@/components/dashboard/page-chrome";
-import { useDashboardStats } from "@/features/dashboard/dashboardQueries";
 import {
-  useEmotionDistribution,
   useVocKeywordStats,
   useVocPriorityDistribution,
 } from "@/features/voc/vocQueries";
 import type {
-  EmotionKey,
   VocKeywordStatsItem,
   VocPriorityDistributionItem,
 } from "@/features/voc/vocTypes";
-
-/* Token-mapped emotion colors (semantic-only, no decorative hues) */
-const emotionColors: Record<EmotionKey, string> = {
-  positive: "#15be53", // success
-  neutral: "#94a3b8", // ink-tertiary
-  negative: "#f96bee", // magenta accent
-  angry: "#ea2261", // error
-};
 
 /* Priority palette — uses semantic + warning + neutral */
 const priorityColors: Record<string, string> = {
@@ -346,16 +334,8 @@ function PriorityDistributionCard({
  * Page
  * ============================================================ */
 export function VocPage() {
-  const statsQuery = useDashboardStats();
-  const emotionQuery = useEmotionDistribution();
   const keywordStatsQuery = useVocKeywordStats();
   const priorityDistributionQuery = useVocPriorityDistribution();
-
-  const emotionData = emotionQuery.data ?? [];
-  const analyzedCalls = emotionData.reduce((sum, item) => sum + item.value, 0);
-  const totalCalls = statsQuery.data?.totalCalls ?? null;
-  const isEmotionEmpty =
-    emotionData.length === 0 || emotionData.every((item) => item.value === 0);
 
   const keywordItems = keywordStatsQuery.data;
   const priorityItems = priorityDistributionQuery.data;
@@ -372,11 +352,6 @@ export function VocPage() {
     (priorityItems.length === 0 ||
       priorityItems.every((item) => item.count === 0));
 
-  const analyzedSummary =
-    totalCalls === null
-      ? `분석된 통화 ${analyzedCalls.toLocaleString("ko-KR")}건 기준`
-      : `분석된 통화 ${analyzedCalls.toLocaleString("ko-KR")}건 / 전체 통화 ${totalCalls.toLocaleString("ko-KR")}건`;
-
   return (
     <PageShell>
       <PageTopbar
@@ -392,143 +367,6 @@ export function VocPage() {
       />
 
       <div className="space-y-6 px-8 py-6">
-        {/* Section: Emotion bar chart */}
-        <motion.section
-          custom={0}
-          initial="hidden"
-          animate="visible"
-          variants={cardVariants}
-          className="space-y-3"
-        >
-          <SectionHeader
-            eyebrow="감정 분포"
-            title="고객 감정 분석"
-            description="긍정·중립·부정·분노 4개 카테고리 분포"
-          />
-
-          <ChartCard
-            icon={<TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />}
-            title="고객 감정 분포"
-            rightSlot={
-              !emotionQuery.isLoading &&
-              !emotionQuery.isError &&
-              !isEmotionEmpty ? (
-                <CountChip>{analyzedSummary}</CountChip>
-              ) : null
-            }
-          >
-            {emotionQuery.isLoading ? (
-              <div className="space-y-4">
-                <Skeleton className="h-[300px] w-full rounded-[8px]" />
-              </div>
-            ) : emotionQuery.isError ? (
-              <EmptyShell height="h-[300px]" tone="error">
-                감정 분포 집계를 불러오지 못했습니다.
-              </EmptyShell>
-            ) : isEmotionEmpty ? (
-              <div className="space-y-4">
-                <EmptyShell height="h-[300px]">
-                  집계된 감정 분포가 없습니다.
-                </EmptyShell>
-                <p
-                  className="hds-tnum text-center text-[12.5px]"
-                  style={{ color: "#64748d", fontWeight: 500 }}
-                >
-                  {analyzedSummary}
-                </p>
-              </div>
-            ) : (
-              <>
-                <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={emotionData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5edf5" />
-                      <XAxis
-                        dataKey="name"
-                        tick={{
-                          fill: "#64748d",
-                          fontSize: 12,
-                          fontFamily: "var(--hds-font-body)",
-                          fontWeight: 500,
-                        }}
-                        axisLine={{ stroke: "#e5edf5" }}
-                        tickLine={{ stroke: "#e5edf5" }}
-                      />
-                      <YAxis
-                        tick={{
-                          fill: "#64748d",
-                          fontSize: 11.5,
-                          fontFamily: "var(--hds-font-body)",
-                          fontWeight: 500,
-                        }}
-                        axisLine={{ stroke: "#e5edf5" }}
-                        tickLine={{ stroke: "#e5edf5" }}
-                        allowDecimals={false}
-                      />
-                      <Tooltip
-                        cursor={{ fill: "rgba(83,58,253,0.04)" }}
-                        contentStyle={{
-                          backgroundColor: "#ffffff",
-                          border: "1px solid #e5edf5",
-                          borderRadius: "8px",
-                          boxShadow:
-                            "rgba(50,50,93,0.18) 0px 18px 30px -18px, rgba(0,0,0,0.08) 0px 10px 20px -10px",
-                          fontSize: "12px",
-                          fontFamily: "var(--hds-font-body)",
-                          fontWeight: 500,
-                          color: "#061b31",
-                          padding: "8px 12px",
-                        }}
-                        labelStyle={{ color: "#273951", fontWeight: 600 }}
-                        formatter={(value: number) => [
-                          `${value.toLocaleString("ko-KR")}건`,
-                          "통화",
-                        ]}
-                      />
-                      <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                        {emotionData.map((entry) => (
-                          <Cell
-                            key={entry.key}
-                            fill={emotionColors[entry.key]}
-                          />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-                  {emotionData.map((item) => (
-                    <div key={item.key} className="flex items-center gap-2">
-                      <div
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: emotionColors[item.key] }}
-                      />
-                      <span
-                        className="text-[12.5px]"
-                        style={{ color: "#273951", fontWeight: 500 }}
-                      >
-                        {item.name}
-                      </span>
-                      <span
-                        className="hds-tnum text-[12px]"
-                        style={{ color: "#64748d", fontWeight: 500 }}
-                      >
-                        {item.value.toLocaleString("ko-KR")}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <p
-                  className="hds-tnum mt-4 text-center text-[12.5px]"
-                  style={{ color: "#64748d", fontWeight: 500 }}
-                >
-                  {analyzedSummary}
-                </p>
-              </>
-            )}
-          </ChartCard>
-        </motion.section>
-
         {/* Section: keywords + priority */}
         <section className="space-y-3">
           <SectionHeader

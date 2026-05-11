@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query"
 import {
-  getDashboardEmotionDistribution,
   getDashboardIntentDistribution,
   getDashboardPriorityQueue,
   getDashboardRecentCalls,
   getDashboardStats,
 } from "@/features/dashboard/dashboardApi"
 import type {
+  DashboardPriorityQueueParams,
   DashboardRecentCallsParams,
   IntentDistributionParams,
 } from "@/features/dashboard/dashboardTypes"
@@ -18,10 +18,10 @@ export function useDashboardStats() {
   })
 }
 
-export function useDashboardPriorityQueue() {
+export function useDashboardPriorityQueue(params?: DashboardPriorityQueueParams) {
   return useQuery({
-    queryKey: ["dashboard", "priority-queue"],
-    queryFn: getDashboardPriorityQueue,
+    queryKey: ["dashboard", "priority-queue", params],
+    queryFn: () => getDashboardPriorityQueue(params),
   })
 }
 
@@ -39,12 +39,5 @@ export function useDashboardIntentDistribution(
     queryKey: ["dashboard", "intent-distribution", params],
     queryFn: () => getDashboardIntentDistribution(params),
     retry: false,
-  })
-}
-
-export function useDashboardEmotionDistribution() {
-  return useQuery({
-    queryKey: ["dashboard", "emotion-distribution"],
-    queryFn: getDashboardEmotionDistribution,
   })
 }

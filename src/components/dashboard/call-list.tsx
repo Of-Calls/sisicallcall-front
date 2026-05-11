@@ -1,17 +1,12 @@
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-import {
-  formatCaller,
-  formatDateTimeShort,
-  formatDuration,
-  getCallStatusLabel,
-  getEmotionLabel,
-  getResolutionStatusLabel,
-} from "@/features/calls/callsAdapters";
-import type { DashboardRecentCall } from "@/features/dashboard/dashboardTypes";
+import type { CSSProperties, ReactNode } from "react"
+import { motion } from "framer-motion"
+import { ArrowRight } from "lucide-react"
+import { Link } from "react-router-dom"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useDashboardPriorityQueue } from "@/features/dashboard/dashboardQueries"
+import type { DashboardAlert } from "@/features/dashboard/dashboardTypes"
+import { cn } from "@/lib/utils"
+import { getResolutionStatusLabel } from "@/features/calls/callsAdapters"
 
 const priorityLabels: Record<string, string> = {
   critical: "Critical",
@@ -19,13 +14,11 @@ const priorityLabels: Record<string, string> = {
   medium: "Medium",
   normal: "Normal",
   low: "Low",
-};
+}
 
-/* ---------------- Status badge variants (HDS tokens) ---------------- */
+type BadgeTone = "info" | "success" | "warning" | "error" | "neutral"
 
-type BadgeTone = "info" | "success" | "warning" | "error" | "neutral";
-
-const badgeStyles: Record<BadgeTone, React.CSSProperties> = {
+const badgeStyles: Record<BadgeTone, CSSProperties> = {
   info: {
     backgroundColor: "rgba(83,58,253,0.08)",
     color: "#533afd",
@@ -51,14 +44,14 @@ const badgeStyles: Record<BadgeTone, React.CSSProperties> = {
     color: "#64748d",
     border: "1px solid #e5edf5",
   },
-};
+}
 
 function StatusBadge({
   tone,
   children,
 }: {
-  tone: BadgeTone;
-  children: React.ReactNode;
+  tone: BadgeTone
+  children: ReactNode
 }) {
   return (
     <span
@@ -71,112 +64,35 @@ function StatusBadge({
     >
       {children}
     </span>
-  );
+  )
 }
 
 function PriorityBadge({ priority }: { priority: string | null }) {
-  const priorityKey = priority?.toLowerCase() ?? "normal";
-  const label = priorityLabels[priorityKey] ?? priority ?? "Normal";
+  const priorityKey = priority?.toLowerCase() ?? "normal"
+  const label = priorityLabels[priorityKey] ?? priority ?? "Normal"
 
-  if (priorityKey === "critical")
-    return <StatusBadge tone="error">{label}</StatusBadge>;
-  if (priorityKey === "high")
-    return <StatusBadge tone="warning">{label}</StatusBadge>;
-  return <StatusBadge tone="neutral">{label}</StatusBadge>;
+  if (priorityKey === "critical") return <StatusBadge tone="error">{label}</StatusBadge>
+  if (priorityKey === "high") return <StatusBadge tone="warning">{label}</StatusBadge>
+  return <StatusBadge tone="neutral">{label}</StatusBadge>
 }
 
-function SentimentBadge({
-  sentiment,
-}: {
-  sentiment: DashboardRecentCall["customer_emotion"];
-}) {
-  const label = getEmotionLabel(sentiment ?? undefined);
-
-  if (sentiment === "negative" || sentiment === "angry") {
-    return (
-      <span
-        className="inline-flex items-center gap-1.5 text-[12px]"
-        style={{
-          color: "#ea2261",
-          fontFamily: "var(--hds-font-body)",
-          fontWeight: 500,
-        }}
-      >
-        <span
-          className="h-1.5 w-1.5 rounded-full"
-          style={{ backgroundColor: "#ea2261" }}
-        />
-        {label}
-      </span>
-    );
-  }
-
-  if (sentiment === "positive") {
-    return (
-      <span
-        className="inline-flex items-center gap-1.5 text-[12px]"
-        style={{
-          color: "#108c3d",
-          fontFamily: "var(--hds-font-body)",
-          fontWeight: 500,
-        }}
-      >
-        <span
-          className="h-1.5 w-1.5 rounded-full"
-          style={{ backgroundColor: "#15be53" }}
-        />
-        {label}
-      </span>
-    );
-  }
-
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 text-[12px]"
-      style={{
-        color: "#64748d",
-        fontFamily: "var(--hds-font-body)",
-        fontWeight: 500,
-      }}
-    >
-      <span
-        className="h-1.5 w-1.5 rounded-full"
-        style={{ backgroundColor: "#94a3b8" }}
-      />
-      {label}
-    </span>
-  );
+function getActionTone(
+  actionRequired: boolean | undefined,
+  resolutionStatus: DashboardAlert["resolutionStatus"],
+): BadgeTone {
+  if (actionRequired === true) return "error"
+  if (resolutionStatus === "resolved") return "success"
+  if (resolutionStatus === "escalated") return "warning"
+  if (resolutionStatus === "abandoned") return "neutral"
+  return "neutral"
 }
-
-const rowVariants = {
-  hidden: { opacity: 0, x: -6 },
-  visible: (i: number) => ({
-    opacity: 1,
-    x: 0,
-    transition: {
-      delay: 0.18 + i * 0.04,
-      duration: 0.34,
-      ease: [0.22, 1, 0.36, 1] as const,
-    },
-  }),
-};
-
-const COL_COUNT = 5;
-
-const headers = [
-  { label: "일시", className: "w-[200px]" },
-  { label: "연락처", className: "w-[130px]" },
-  { label: "요약", className: "" },
-  { label: "우선순위", className: "w-[90px] text-center" },
-  { label: "통화 시간", className: "w-[90px] text-right" },
-] as const;
 
 function CallListSkeleton() {
   return (
     <>
       {Array.from({ length: 5 }).map((_, rowIndex) => (
         <tr key={rowIndex} style={{ borderBottom: "1px solid #e5edf5" }}>
-          {Array.from({ length: COL_COUNT }).map((__, cellIndex) => (
+          {Array.from({ length: 5 }).map((__, cellIndex) => (
             <td key={cellIndex} className="px-4 py-3">
               <Skeleton className="h-3.5 w-full" />
             </td>
@@ -184,18 +100,33 @@ function CallListSkeleton() {
         </tr>
       ))}
     </>
-  );
+  )
 }
 
-export function CallList({
-  calls,
-  isLoading,
-  error,
-}: {
-  calls: DashboardRecentCall[];
-  isLoading: boolean;
-  error: Error | null;
-}) {
+function formatDateTime(value: string) {
+  if (!value) return "-"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+export function CallList() {
+  const priorityQueueQuery = useDashboardPriorityQueue({ limit: 10 })
+  const actionCalls = priorityQueueQuery.data?.items ?? []
+  const visibleActionCalls = actionCalls.filter((item) => {
+    if (typeof item.followUpRequired === "boolean") {
+      return item.followUpRequired
+    }
+
+    return true
+  })
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -208,7 +139,6 @@ export function CallList({
         fontFamily: "var(--hds-font-body)",
       }}
     >
-      {/* Header strip — sits ABOVE the table, not on the same surface */}
       <div
         className="flex items-center justify-between gap-3 px-5 py-4"
         style={{ borderBottom: "1px solid #e5edf5" }}
@@ -245,12 +175,12 @@ export function CallList({
             fontFamily: "var(--hds-font-body)",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "#f6f9fc";
-            e.currentTarget.style.borderColor = "#d6d9fc";
+            e.currentTarget.style.backgroundColor = "#f6f9fc"
+            e.currentTarget.style.borderColor = "#d6d9fc"
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = "#ffffff";
-            e.currentTarget.style.borderColor = "#e5edf5";
+            e.currentTarget.style.backgroundColor = "#ffffff"
+            e.currentTarget.style.borderColor = "#e5edf5"
           }}
         >
           전체 보기
@@ -270,133 +200,170 @@ export function CallList({
                 borderBottom: "1px solid #d6d9fc",
               }}
             >
-              {headers.map((h) => (
-                <th
-                  key={h.label}
-                  scope="col"
-                  className={cn(
-                    "whitespace-nowrap px-4 py-3 text-[11.5px] uppercase",
-                    h.className,
-                  )}
-                  style={{
-                    color: "#64748d",
-                    fontWeight: 600,
-                    letterSpacing: "0.4px",
-                    fontFamily: "var(--hds-font-body)",
-                  }}
-                >
-                  {h.label}
-                </th>
-              ))}
+              <th
+                scope="col"
+                className="w-[200px] whitespace-nowrap px-4 py-3 text-[11.5px] uppercase"
+                style={{
+                  color: "#64748d",
+                  fontWeight: 600,
+                  letterSpacing: "0.4px",
+                }}
+              >
+                일시
+              </th>
+              <th
+                scope="col"
+                className="w-[130px] whitespace-nowrap px-4 py-3 text-[11.5px] uppercase"
+                style={{
+                  color: "#64748d",
+                  fontWeight: 600,
+                  letterSpacing: "0.4px",
+                }}
+              >
+                연락처
+              </th>
+              <th
+                scope="col"
+                className="whitespace-nowrap px-4 py-3 text-[11.5px] uppercase"
+                style={{
+                  color: "#64748d",
+                  fontWeight: 600,
+                  letterSpacing: "0.4px",
+                }}
+              >
+                요약
+              </th>
+              <th
+                scope="col"
+                className="w-[90px] whitespace-nowrap px-4 py-3 text-center text-[11.5px] uppercase"
+                style={{
+                  color: "#64748d",
+                  fontWeight: 600,
+                  letterSpacing: "0.4px",
+                }}
+              >
+                우선순위
+              </th>
+              <th
+                scope="col"
+                className="w-[100px] whitespace-nowrap px-4 py-3 text-right text-[11.5px] uppercase"
+                style={{
+                  color: "#64748d",
+                  fontWeight: 600,
+                  letterSpacing: "0.4px",
+                }}
+              >
+                통화 시간
+              </th>
             </tr>
           </thead>
 
           <tbody>
-            {isLoading ? <CallListSkeleton /> : null}
+            {priorityQueueQuery.isLoading ? <CallListSkeleton /> : null}
 
-            {!isLoading && error ? (
+            {!priorityQueueQuery.isLoading && priorityQueueQuery.isError ? (
               <tr>
                 <td
-                  colSpan={COL_COUNT}
+                  colSpan={5}
                   className="h-24 text-center text-[13px]"
                   style={{ color: "#64748d" }}
                 >
-                  최근 통화 데이터를 불러오지 못했습니다.
+                  최근 조치 필요 콜 데이터를 불러오지 못했습니다.
                 </td>
               </tr>
             ) : null}
 
-            {!isLoading && !error && calls.length === 0 ? (
+            {!priorityQueueQuery.isLoading &&
+            !priorityQueueQuery.isError &&
+            visibleActionCalls.length === 0 ? (
               <tr>
                 <td
-                  colSpan={COL_COUNT}
+                  colSpan={5}
                   className="h-24 text-center text-[13px]"
                   style={{ color: "#64748d" }}
                 >
-                  최근 통화가 없습니다.
+                  현재 상담원 후속 조치가 필요한 콜이 없습니다.
                 </td>
               </tr>
             ) : null}
 
-            {calls.map((call, idx) => (
-              <motion.tr
-                key={call.id}
-                custom={idx}
-                initial="hidden"
-                animate="visible"
-                variants={rowVariants}
-                className="group align-middle transition-colors"
-                style={{ borderBottom: "1px solid #e5edf5" }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#f6f9fc")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <td className="whitespace-nowrap px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <StatusBadge tone="neutral">
-                      {getCallStatusLabel(call.status)}
-                    </StatusBadge>
+            {visibleActionCalls.slice(0, 10).map((item, idx) => {
+              const summary = item.summaryShort || item.reason || "요약 없음"
+              const actionTone = getActionTone(
+                item.actionRequired,
+                item.resolutionStatus,
+              )
+
+              return (
+                <motion.tr
+                  key={item.id}
+                  custom={idx}
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{
+                    delay: 0.18 + idx * 0.04,
+                    duration: 0.34,
+                    ease: [0.22, 1, 0.36, 1] as const,
+                  }}
+                  className="group align-middle transition-colors"
+                  style={{ borderBottom: "1px solid #e5edf5" }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#f6f9fc")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
+                >
+                  <td className="whitespace-nowrap px-4 py-3">
                     <span
                       className="hds-tnum text-[12px]"
                       style={{ color: "#64748d", fontWeight: 500 }}
                     >
-                      {formatDateTimeShort(call.started_at)}
+                      {formatDateTime(item.createdAt)}
                     </span>
-                  </div>
-                </td>
-                <td
-                  className="hds-tnum whitespace-nowrap px-4 py-3 text-[13px]"
-                  style={{ color: "#273951", fontWeight: 500 }}
-                >
-                  {formatCaller(call.caller_number)}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="space-y-1">
-                    <p
-                      className="line-clamp-2 text-[13px] leading-[1.5]"
-                      style={{ color: "#273951", fontWeight: 500 }}
-                      title={call.summary_short ?? undefined}
-                    >
-                      {call.summary_short ?? "요약 없음"}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <SentimentBadge sentiment={call.customer_emotion} />
-                      {call.resolution_status ? (
-                        <>
-                          <span
-                            className="text-[11.5px]"
-                            style={{ color: "#cbd5e1" }}
-                          >
-                            ·
-                          </span>
-                          <span
-                            className="text-[11.5px]"
-                            style={{ color: "#64748d", fontWeight: 500 }}
-                          >
-                            {getResolutionStatusLabel(call.resolution_status)}
-                          </span>
-                        </>
-                      ) : null}
+                  </td>
+                  <td
+                    className="hds-tnum whitespace-nowrap px-4 py-3 text-[13px]"
+                    style={{ color: "#273951", fontWeight: 500 }}
+                  >
+                    {item.callerNumber || "-"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="space-y-1">
+                      <p
+                        className="line-clamp-2 text-[13px] leading-[1.5]"
+                        style={{ color: "#273951", fontWeight: 500 }}
+                        title={summary}
+                      >
+                        {summary}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {item.actionRequired === true ? (
+                          <StatusBadge tone="error">조치 필요</StatusBadge>
+                        ) : null}
+                        {item.resolutionStatus ? (
+                          <StatusBadge tone={actionTone}>
+                            {getResolutionStatusLabel(item.resolutionStatus)}
+                          </StatusBadge>
+                        ) : null}
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <PriorityBadge priority={call.priority} />
-                </td>
-                <td
-                  className="hds-tnum whitespace-nowrap px-4 py-3 text-right text-[13px]"
-                  style={{ color: "#273951", fontWeight: 500 }}
-                >
-                  {formatDuration(call.duration_sec)}
-                </td>
-              </motion.tr>
-            ))}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <PriorityBadge priority={item.priority} />
+                  </td>
+                  <td
+                    className="hds-tnum whitespace-nowrap px-4 py-3 text-right text-[13px]"
+                    style={{ color: "#273951", fontWeight: 500 }}
+                  >
+                    -
+                  </td>
+                </motion.tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
     </motion.div>
-  );
+  )
 }

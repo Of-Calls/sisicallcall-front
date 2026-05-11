@@ -1,18 +1,3 @@
-export type EmotionKey = "positive" | "neutral" | "negative" | "angry"
-
-export type EmotionDistributionResponse = {
-  positive: number
-  neutral: number
-  negative: number
-  angry: number
-}
-
-export type EmotionChartDatum = {
-  name: string
-  value: number
-  key: EmotionKey
-}
-
 export type VocKeywordStatsResponseItem = {
   keyword?: string
   label?: string

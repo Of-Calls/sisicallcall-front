@@ -1,6 +1,4 @@
 import type {
-  EmotionChartDatum,
-  EmotionDistributionResponse,
   VocKeywordStatsItem,
   VocKeywordStatsResponse,
   VocKeywordStatsResponseItem,
@@ -55,7 +53,7 @@ function normalizeKeywordItem(
   item: VocKeywordStatsResponseItem,
 ): VocKeywordStatsItem {
   return {
-    keyword: toString(item.keyword, toString(item.label, "미분류")),
+    keyword: toString(item.keyword, toString(item.label, "기타")),
     count: toNumber(item.count),
   }
 }
@@ -76,33 +74,6 @@ function extractKeywordItems(payload: unknown) {
   }
 
   return []
-}
-
-export function normalizeEmotionDistribution(
-  distribution: Partial<EmotionDistributionResponse> = {},
-): EmotionChartDatum[] {
-  return [
-    {
-      key: "positive",
-      name: "긍정",
-      value: toNumber(distribution.positive),
-    },
-    {
-      key: "neutral",
-      name: "중립",
-      value: toNumber(distribution.neutral),
-    },
-    {
-      key: "negative",
-      name: "부정",
-      value: toNumber(distribution.negative),
-    },
-    {
-      key: "angry",
-      name: "분노",
-      value: toNumber(distribution.angry),
-    },
-  ]
 }
 
 export function normalizeVocKeywordStats(

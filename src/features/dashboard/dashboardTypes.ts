@@ -22,20 +22,39 @@ export type DashboardOverview = {
 export type PriorityQueueItem = {
   id?: string
   call_id?: string
+  tenant_id?: string
   caller_number?: string
   reason?: string
+  summary_short?: string
+  primary_category?: string | null
   priority?: string
   created_at?: string
+  action_required?: boolean
+  resolution_status?: "resolved" | "escalated" | "abandoned" | null
+  follow_up_required?: boolean
+  actionRequired?: boolean
+  resolutionStatus?: "resolved" | "escalated" | "abandoned" | null
+  followUpRequired?: boolean
   [key: string]: unknown
 }
 
 export type DashboardAlert = {
   id: string
   callId: string
+  tenantId?: string
   callerNumber: string
   reason: string
+  summaryShort?: string
+  primaryCategory?: string | null
   priority: string
   createdAt: string
+  actionRequired?: boolean
+  resolutionStatus?: "resolved" | "escalated" | "abandoned" | null
+  followUpRequired?: boolean
+}
+
+export type DashboardPriorityQueueData = {
+  items: DashboardAlert[]
 }
 
 export type DashboardRecentCall = {
@@ -64,6 +83,11 @@ export type DashboardRecentCallsParams = {
   started_to?: string
 }
 
+export type DashboardPriorityQueueParams = {
+  limit?: number
+  offset?: number
+}
+
 export type IntentDistributionItem = {
   label: string
   count: number
@@ -73,11 +97,4 @@ export type IntentDistributionParams = {
   limit?: number
   started_from?: string
   started_to?: string
-}
-
-export type EmotionDistribution = {
-  positive: number
-  neutral: number
-  negative: number
-  angry: number
 }

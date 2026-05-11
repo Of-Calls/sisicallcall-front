@@ -5,12 +5,10 @@ import {
 } from "@/shared/api/client"
 import { endpoints } from "@/shared/api/endpoints"
 import {
-  normalizeEmotionDistribution,
   normalizeVocKeywordStats,
   normalizeVocPriorityDistribution,
 } from "@/features/voc/vocAdapters"
 import type {
-  EmotionDistributionResponse,
   VocKeywordStatsResponse,
   VocPriorityDistributionRecord,
   VocPriorityDistributionResponseItem,
@@ -44,14 +42,6 @@ function resolvePriorityDistributionPayload(payload: unknown) {
   }
 
   return normalizeVocPriorityDistribution(unwrapApiResponse(payload))
-}
-
-export async function getEmotionDistribution() {
-  const response = await apiFetch<
-    EmotionDistributionResponse | { data: EmotionDistributionResponse }
-  >(endpoints.dashboardEmotionDistribution)
-
-  return normalizeEmotionDistribution(unwrapApiResponse(response))
 }
 
 export async function getVocKeywordStats() {
