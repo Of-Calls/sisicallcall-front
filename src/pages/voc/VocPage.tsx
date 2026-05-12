@@ -51,7 +51,7 @@ function ChartCard({
 }) {
   return (
     <div
-      className="flex h-full flex-col overflow-hidden rounded-[12px]"
+      className="flex h-full min-w-0 flex-col overflow-hidden rounded-[12px]"
       style={{
         backgroundColor: "#ffffff",
         border: "1px solid #e5edf5",
@@ -59,12 +59,12 @@ function ChartCard({
       }}
     >
       <div
-        className="flex items-start justify-between gap-3 px-5 py-4"
+        className="flex flex-wrap items-start justify-between gap-3 px-5 py-4"
         style={{ borderBottom: "1px solid #e5edf5" }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <span
-            className="flex h-7 w-7 items-center justify-center rounded-[6px]"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px]"
             style={{
               color: "#533afd",
               backgroundColor: "rgba(83,58,253,0.08)",
@@ -74,7 +74,7 @@ function ChartCard({
             {icon}
           </span>
           <h3
-            className="text-[15px] tracking-[-0.01em]"
+            className="text-soft-wrap text-[15px] tracking-[-0.01em]"
             style={{
               color: "#061b31",
               fontFamily: "var(--hds-font-display)",
@@ -147,8 +147,8 @@ function KeywordStatsCard({ items }: { items: VocKeywordStatsItem[] }) {
                 fontFamily: "var(--hds-font-body)",
               }}
             >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
+              <div className="flex min-w-0 items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
                   <span
                     className="hds-tnum flex h-6 w-6 shrink-0 items-center justify-center rounded-[4px] text-[11px]"
                     style={{
@@ -162,7 +162,7 @@ function KeywordStatsCard({ items }: { items: VocKeywordStatsItem[] }) {
                     {index + 1}
                   </span>
                   <span
-                    className="text-[13px]"
+                    className="min-w-0 truncate text-[13px]"
                     style={{ color: "#061b31", fontWeight: 600 }}
                   >
                     {item.keyword}
@@ -245,7 +245,7 @@ export function VocPage() {
         }
       />
 
-      <div className="space-y-6 px-8 py-6">
+      <div className="space-y-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
         <section className="space-y-3">
           <SectionHeader
             eyebrow="기간별 정리"
@@ -277,8 +277,9 @@ export function VocPage() {
             description="주요 문의 키워드와 우선순위 분포를 함께 확인합니다."
           />
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid min-w-0 gap-4 md:grid-cols-2">
             <motion.div
+              className="min-w-0"
               custom={1}
               initial="hidden"
               animate="visible"
@@ -315,6 +316,7 @@ export function VocPage() {
             </motion.div>
 
             <motion.div
+              className="min-w-0"
               custom={2}
               initial="hidden"
               animate="visible"

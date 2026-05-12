@@ -435,7 +435,7 @@ export function IntegrationsPage() {
         }
       />
 
-      <div className="space-y-6 px-8 py-6">
+      <div className="space-y-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
         {/* Inline notices */}
         {!tenantId ? (
           <InfoCallout
@@ -470,7 +470,7 @@ export function IntegrationsPage() {
             description="연결한 서비스만 통화 처리 자동화 흐름에 활용됩니다."
           />
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {integrations.map((item, index) => {
               const state = getDisplayState(item);
               const meta = displayMetaFor(state);
@@ -488,7 +488,7 @@ export function IntegrationsPage() {
                     delay: 0.05 + index * 0.04,
                     ease: [0.22, 1, 0.36, 1],
                   }}
-                  className="flex h-full flex-col rounded-[12px] p-5 transition-all duration-200"
+                  className="flex h-full min-w-0 flex-col rounded-[12px] p-5 transition-all duration-200"
                   style={{
                     backgroundColor: "#ffffff",
                     border: "1px solid #e5edf5",
@@ -503,7 +503,7 @@ export function IntegrationsPage() {
                     e.currentTarget.style.boxShadow = "none";
                   }}
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-start justify-between gap-3">
                     <span
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px]"
                       style={{
@@ -519,9 +519,9 @@ export function IntegrationsPage() {
                     </StatusBadge>
                   </div>
 
-                  <div className="mt-4 space-y-1">
+                  <div className="mt-4 min-w-0 space-y-1">
                     <h3
-                      className="text-[15px] tracking-[-0.01em]"
+                      className="text-soft-wrap text-[15px] tracking-[-0.01em]"
                       style={{
                         color: "#061b31",
                         fontFamily: "var(--hds-font-display)",
@@ -531,7 +531,7 @@ export function IntegrationsPage() {
                       {item.name}
                     </h3>
                     <p
-                      className="min-h-[40px] text-[13px] leading-[1.55]"
+                      className="text-soft-wrap min-h-[40px] text-[13px] leading-[1.55]"
                       style={{ color: "#64748d", fontWeight: 500 }}
                     >
                       {item.description}
@@ -559,9 +559,9 @@ export function IntegrationsPage() {
                     ) : null}
                   </div>
 
-                  <div className="mt-auto flex items-end justify-between gap-3 pt-5">
+                  <div className="mt-auto flex flex-wrap items-end justify-between gap-3 pt-5">
                     <p
-                      className="flex-1 text-[11.5px] leading-[1.5]"
+                      className="text-soft-wrap min-w-[160px] flex-1 text-[11.5px] leading-[1.5]"
                       style={{ color: "#94a3b8", fontWeight: 500 }}
                     >
                       {meta.helperText}
@@ -571,7 +571,7 @@ export function IntegrationsPage() {
                       disabled={meta.disabled}
                       onClick={() => handleConnect(item)}
                       className={cn(
-                        "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[6px] px-3 text-[12.5px] transition-all",
+                        "no-text-break inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[6px] px-3 text-[12.5px] transition-all",
                       )}
                       style={getButtonStyle(meta.buttonVariant, meta.disabled)}
                     >
@@ -634,7 +634,7 @@ function InfoCallout({
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className="flex items-start gap-3 rounded-[8px] px-4 py-3"
+      className="text-soft-wrap flex items-start gap-3 rounded-[8px] px-4 py-3"
       style={{
         backgroundColor: styles.backgroundColor,
         border: `1px solid ${styles.borderColor}`,
@@ -739,10 +739,10 @@ function JiraWorkspacePicker({
         fontFamily: "var(--hds-font-body)",
       }}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         <Bug className="h-4 w-4" style={{ color: "#9b6829" }} />
         <h3
-          className="text-[15px] tracking-[-0.01em]"
+          className="text-soft-wrap text-[15px] tracking-[-0.01em]"
           style={{
             color: "#061b31",
             fontFamily: "var(--hds-font-display)",
@@ -753,7 +753,7 @@ function JiraWorkspacePicker({
         </h3>
       </div>
       <p
-        className="mt-1 text-[12.5px] leading-[1.55]"
+        className="text-soft-wrap mt-1 text-[12.5px] leading-[1.55]"
         style={{ color: "#64748d", fontWeight: 500 }}
       >
         연결된 Atlassian 계정에 여러 워크스페이스가 있습니다. 사용할
@@ -776,7 +776,7 @@ function JiraWorkspacePicker({
               return (
                 <li key={resource.id}>
                   <label
-                    className="flex cursor-pointer items-start gap-3 rounded-[8px] p-3 transition-colors"
+                    className="flex min-w-0 cursor-pointer items-start gap-3 rounded-[8px] p-3 transition-colors"
                     style={{
                       backgroundColor: isSelected
                         ? "rgba(83,58,253,0.05)"
@@ -825,7 +825,7 @@ function JiraWorkspacePicker({
             type="button"
             onClick={handleSubmit}
             disabled={!selected || submitting || resources.length === 0}
-            className="inline-flex h-9 items-center rounded-[6px] px-4 text-[13px] transition-all"
+            className="no-text-break inline-flex h-9 items-center rounded-[6px] px-4 text-[13px] transition-all"
             style={getButtonStyle(
               "primary",
               !selected || submitting || resources.length === 0,

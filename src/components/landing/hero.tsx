@@ -6,10 +6,8 @@ import {
   PhoneCall,
   Sparkles,
 } from "lucide-react";
+import { BrandLogo } from "@/components/common/BrandLogo";
 import { DashboardEntryActions } from "@/components/landing/dashboard-entry-choice";
-
-const logoSrc =
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-F73u93gxOEnKoM0ShWO9oUBWEHDlnw.png";
 
 const easeOut = [0.22, 1, 0.36, 1] as const;
 
@@ -62,7 +60,10 @@ export function Hero() {
               <br />
               <span className="hds-gradient-text">하이브리드 AI 에이전트</span>,
               <br />
-              <span className="text-[#1c1e54]">시시콜콜</span>
+              <BrandLogo
+                variant="wordmark"
+                className="mt-2 block h-14 w-auto max-w-[280px] sm:h-16 sm:max-w-[340px] lg:h-20 lg:max-w-[420px]"
+              />
             </motion.h1>
 
             <motion.p
@@ -163,14 +164,7 @@ export function Hero() {
                   />
                   app.시시콜콜.io / dashboard
                 </div>
-                <img
-                  src={logoSrc}
-                  alt=""
-                  width={20}
-                  height={20}
-                  className="opacity-80"
-                  style={{ mixBlendMode: "multiply" }}
-                />
+                <BrandLogo variant="icon" className="h-6 w-6 opacity-90" />
               </div>
 
               {/* Mock content */}

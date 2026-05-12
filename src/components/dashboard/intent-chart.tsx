@@ -42,7 +42,7 @@ function ChartShell({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
-      className="h-full overflow-hidden rounded-[12px]"
+      className="h-full min-w-0 overflow-hidden rounded-[12px]"
       style={{
         backgroundColor: "#ffffff",
         border: "1px solid #e5edf5",
@@ -71,12 +71,12 @@ export function IntentChart({
   return (
     <ChartShell delay={0.12}>
       <div
-        className="flex items-start justify-between px-5 py-4"
+        className="flex flex-wrap items-start justify-between gap-3 px-5 py-4"
         style={{ borderBottom: "1px solid #e5edf5" }}
       >
-        <div>
+        <div className="min-w-0">
           <h3
-            className="text-[15px] tracking-[-0.01em]"
+            className="text-soft-wrap text-[15px] tracking-[-0.01em]"
             style={{
               color: "#061b31",
               fontFamily: "var(--hds-font-display)",
@@ -86,7 +86,7 @@ export function IntentChart({
             주요 문의 의도
           </h3>
           <p
-            className="mt-0.5 text-[12px]"
+            className="text-soft-wrap mt-0.5 text-[12px]"
             style={{ color: "#64748d", fontWeight: 500 }}
           >
             상위 5개 카테고리 · 최근 7일 기준
@@ -94,7 +94,7 @@ export function IntentChart({
         </div>
         {!isLoading && !error && !isBackendPending && total > 0 ? (
           <span
-            className="hds-tnum inline-flex items-center rounded-[4px] px-2 py-0.5 text-[11.5px]"
+            className="hds-tnum no-text-break inline-flex shrink-0 items-center rounded-[4px] px-2 py-0.5 text-[11.5px]"
             style={{
               color: "#533afd",
               backgroundColor: "rgba(83,58,253,0.08)",
@@ -109,7 +109,7 @@ export function IntentChart({
 
       <div className="px-5 py-4">
         {isLoading ? (
-          <div className="h-[240px]">
+          <div className="h-[240px] min-w-0">
             <Skeleton className="h-full w-full rounded-[8px]" />
           </div>
         ) : error ? (

@@ -26,17 +26,17 @@ export function PageTopbar({
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="sticky top-0 z-20 flex items-center justify-between gap-4 px-8 py-5 backdrop-blur-md"
+      className="sticky top-0 z-20 flex flex-wrap items-start justify-between gap-3 px-4 py-4 backdrop-blur-md sm:px-6 lg:px-8 lg:py-5"
       style={{
         backgroundColor: "rgba(255,255,255,0.92)",
         borderBottom: "1px solid #e5edf5",
         fontFamily: "var(--hds-font-body)",
       }}
     >
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         {eyebrow ? (
           <p
-            className="text-[11.5px] uppercase"
+            className="no-text-break text-[11.5px] uppercase"
             style={{
               color: "#94a3b8",
               fontWeight: 600,
@@ -47,7 +47,7 @@ export function PageTopbar({
           </p>
         ) : null}
         <h1
-          className="mt-0.5 text-[22px] tracking-[-0.018em]"
+          className="text-soft-wrap mt-0.5 text-[22px] tracking-[-0.018em]"
           style={{
             color: "#061b31",
             fontFamily: "var(--hds-font-display)",
@@ -59,7 +59,7 @@ export function PageTopbar({
         </h1>
         {description ? (
           <p
-            className="mt-1 text-[12.5px]"
+            className="text-soft-wrap mt-1 text-[12.5px]"
             style={{ color: "#64748d", fontWeight: 500 }}
           >
             {description}
@@ -68,7 +68,9 @@ export function PageTopbar({
       </div>
 
       {rightSlot ? (
-        <div className="flex shrink-0 items-center gap-2">{rightSlot}</div>
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          {rightSlot}
+        </div>
       ) : null}
     </motion.div>
   );
@@ -90,11 +92,11 @@ export function SectionHeader({
   rightSlot?: ReactNode;
 }) {
   return (
-    <header className="flex items-end justify-between gap-3">
-      <div className="min-w-0">
+    <header className="flex flex-wrap items-end justify-between gap-3">
+      <div className="min-w-0 flex-1">
         {eyebrow ? (
           <p
-            className="text-[11.5px] uppercase"
+            className="no-text-break text-[11.5px] uppercase"
             style={{
               color: "#94a3b8",
               fontWeight: 600,
@@ -105,7 +107,7 @@ export function SectionHeader({
           </p>
         ) : null}
         <h2
-          className="text-[16px] tracking-[-0.012em]"
+          className="text-soft-wrap text-[16px] tracking-[-0.012em]"
           style={{
             color: "#061b31",
             fontFamily: "var(--hds-font-display)",
@@ -116,7 +118,7 @@ export function SectionHeader({
         </h2>
         {description ? (
           <p
-            className="mt-0.5 text-[12.5px]"
+            className="text-soft-wrap mt-0.5 text-[12.5px]"
             style={{ color: "#64748d", fontWeight: 500 }}
           >
             {description}
@@ -124,7 +126,9 @@ export function SectionHeader({
         ) : null}
       </div>
       {rightSlot ? (
-        <div className="flex shrink-0 items-center gap-2">{rightSlot}</div>
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          {rightSlot}
+        </div>
       ) : null}
     </header>
   );
@@ -169,7 +173,7 @@ export function CountChip({
 
   return (
     <span
-      className="hds-tnum inline-flex items-center gap-1 rounded-[4px] px-2 py-0.5 text-[11.5px]"
+      className="hds-tnum no-text-break inline-flex shrink-0 items-center gap-1 rounded-[4px] px-2 py-0.5 text-[11.5px]"
       style={{
         ...styles,
         fontFamily: "var(--hds-font-body)",
@@ -226,7 +230,7 @@ export function StatusBadge({
 }) {
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-[4px] px-1.5 py-0.5 text-[11.5px] leading-[1.4]"
+      className="no-text-break inline-flex shrink-0 items-center gap-1 rounded-[4px] px-1.5 py-0.5 text-[11.5px] leading-[1.4]"
       style={{
         ...badgeToneStyles[tone],
         fontFamily: "var(--hds-font-body)",
@@ -246,6 +250,7 @@ export function StatusBadge({
 export function PageShell({ children }: { children: ReactNode }) {
   return (
     <div
+      className="min-w-0"
       style={{
         backgroundColor: "#ffffff",
         fontFamily: "var(--hds-font-body)",
@@ -272,7 +277,7 @@ export function EmptyShell({
   const isError = tone === "error";
   return (
     <div
-      className={`flex ${height} flex-col items-center justify-center gap-1 rounded-[8px] px-4 text-center text-[13px]`}
+      className={`text-soft-wrap flex ${height} flex-col items-center justify-center gap-1 rounded-[8px] px-4 text-center text-[13px]`}
       style={{
         border: isError
           ? "1px solid rgba(234,34,97,0.25)"

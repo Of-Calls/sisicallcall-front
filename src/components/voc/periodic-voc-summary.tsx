@@ -169,7 +169,7 @@ export function PeriodicVocSummary({
 
   return (
     <section
-      className="overflow-hidden rounded-[12px]"
+      className="min-w-0 overflow-hidden rounded-[12px]"
       style={{
         backgroundColor: "#ffffff",
         border: "1px solid #e5edf5",
@@ -177,12 +177,12 @@ export function PeriodicVocSummary({
       }}
     >
       <div
-        className="flex items-start justify-between gap-3 px-5 py-4"
+        className="flex flex-wrap items-start justify-between gap-3 px-5 py-4"
         style={{ borderBottom: "1px solid #e5edf5" }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <span
-            className="flex h-7 w-7 items-center justify-center rounded-[6px]"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px]"
             style={{
               color: "#533afd",
               backgroundColor: "rgba(83,58,253,0.08)",
@@ -191,9 +191,9 @@ export function PeriodicVocSummary({
           >
             <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" />
           </span>
-          <div>
+          <div className="min-w-0">
             <h3
-              className="text-[15px] tracking-[-0.01em]"
+              className="text-soft-wrap text-[15px] tracking-[-0.01em]"
               style={{
                 color: "#061b31",
                 fontFamily: "var(--hds-font-display)",
@@ -202,7 +202,7 @@ export function PeriodicVocSummary({
             >
               기간별 VOC 정리
             </h3>
-            <p className="mt-0.5 text-[12.5px]" style={{ color: "#64748d", fontWeight: 500 }}>
+            <p className="text-soft-wrap mt-0.5 text-[12.5px]" style={{ color: "#64748d", fontWeight: 500 }}>
               키워드와 우선순위 항목을 기준으로 반복 문의와 긴급 이슈를 정리합니다.
             </p>
           </div>
@@ -211,6 +211,7 @@ export function PeriodicVocSummary({
         <Tabs
           value={period}
           onValueChange={(value) => onPeriodChange(value as VocSummaryPeriod)}
+          className="max-w-full overflow-x-auto"
         >
           <TabsList>
             <TabsTrigger value="week">주간</TabsTrigger>
@@ -223,7 +224,7 @@ export function PeriodicVocSummary({
       <div className="space-y-4 p-5">
         {isLoading ? (
           <>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid min-w-0 gap-3 sm:grid-cols-3">
               {Array.from({ length: 3 }).map((_, index) => (
                 <Skeleton key={index} className="h-24 w-full rounded-[8px]" />
               ))}
@@ -238,7 +239,7 @@ export function PeriodicVocSummary({
           <EmptyShell height="h-[180px]">분석할 VOC 데이터가 없습니다.</EmptyShell>
         ) : (
           <>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid min-w-0 gap-3 sm:grid-cols-3">
               <div
                 className="rounded-[8px] p-3"
                 style={{ backgroundColor: "#f6f9fc", border: "1px solid #e5edf5" }}
@@ -248,7 +249,7 @@ export function PeriodicVocSummary({
                 </p>
                 <div className="mt-2 flex items-end justify-between gap-2">
                   <p
-                    className="truncate text-[13px]"
+                    className="min-w-0 truncate text-[13px]"
                     style={{ color: "#061b31", fontWeight: 600 }}
                     title={summary.topKeyword?.label ?? "-"}
                   >
@@ -292,7 +293,7 @@ export function PeriodicVocSummary({
             </div>
 
             <div
-              className="flex items-start gap-2 rounded-[8px] px-3 py-3 text-[13px]"
+              className="text-soft-wrap flex items-start gap-2 rounded-[8px] px-3 py-3 text-[13px]"
               style={{
                 backgroundColor: "rgba(83,58,253,0.04)",
                 border: "1px solid rgba(83,58,253,0.16)",

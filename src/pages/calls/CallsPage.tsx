@@ -179,14 +179,14 @@ function McpActionLogsSection({
 }) {
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         <Activity
           className="h-4 w-4"
           style={{ color: "#533afd" }}
           aria-hidden="true"
         />
         <h3
-          className="text-[14px] tracking-[-0.008em]"
+          className="text-soft-wrap text-[14px] tracking-[-0.008em]"
           style={{
             color: "#061b31",
             fontFamily: "var(--hds-font-display)",
@@ -240,7 +240,7 @@ function McpActionLogsSection({
                     {getMcpStatusLabel(action.status)}
                   </StatusBadge>
                   <span
-                    className="hds-tnum ml-auto text-[11.5px]"
+                    className="hds-tnum no-text-break ml-auto text-[11.5px]"
                     style={{ color: "#64748d", fontWeight: 500 }}
                   >
                     {formatDateTime(action.executed_at)}
@@ -249,7 +249,7 @@ function McpActionLogsSection({
 
                 {action.status === "success" ? (
                   <p
-                    className="mt-2 text-[12.5px]"
+                    className="text-soft-wrap mt-2 text-[12.5px]"
                     style={{
                       color: "#273951",
                       fontWeight: 500,
@@ -260,7 +260,7 @@ function McpActionLogsSection({
                   </p>
                 ) : action.error_message ? (
                   <p
-                    className="mt-2 rounded-[6px] px-3 py-2 text-[12.5px]"
+                    className="text-soft-wrap mt-2 rounded-[6px] px-3 py-2 text-[12.5px]"
                     style={{
                       backgroundColor: "rgba(234,34,97,0.04)",
                       border: "1px solid rgba(234,34,97,0.25)",
@@ -334,7 +334,7 @@ export function CallsPage() {
         }
       />
 
-      <div className="mx-auto w-full max-w-[1200px] space-y-5 px-8 py-6">
+      <div className="mx-auto w-full max-w-[1200px] space-y-5 px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
         {callsQuery.isError ? (
           <div
             className="rounded-[8px] px-4 py-3 text-[13px]"
@@ -361,9 +361,9 @@ export function CallsPage() {
             fontFamily: "var(--hds-font-body)",
           }}
         >
-          <div className="overflow-x-auto">
+          <div className="responsive-table-wrapper">
             <table
-              className="w-full border-collapse text-left"
+              className="w-full min-w-[760px] border-collapse text-left"
               style={{ fontVariantNumeric: "tabular-nums" }}
             >
               <thead>
@@ -461,7 +461,7 @@ export function CallsPage() {
                             <StatusBadge tone="neutral">{intent}</StatusBadge>
                           ) : null}
                           {summary ? (
-                            <p className="line-clamp-2 leading-[1.55]">
+                            <p className="text-soft-wrap line-clamp-2 leading-[1.55]" title={summary}>
                               {summary}
                             </p>
                           ) : (
@@ -490,16 +490,16 @@ export function CallsPage() {
 
           {/* Pagination */}
           <div
-            className="flex items-center justify-between px-4 py-3 text-[12.5px]"
+            className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-[12.5px]"
             style={{ borderTop: "1px solid #e5edf5" }}
           >
             <div
-              className="hds-tnum"
+              className="hds-tnum no-text-break"
               style={{ color: "#64748d", fontWeight: 500 }}
             >
               페이지 {page} / {totalPages}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               <PaginationButton
                 disabled={page <= 1 || callsQuery.isFetching}
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
@@ -508,7 +508,7 @@ export function CallsPage() {
                 이전
               </PaginationButton>
               <span
-                className="hds-tnum min-w-24 text-center"
+                className="hds-tnum no-text-break min-w-24 text-center"
                 style={{ color: "#64748d", fontWeight: 500 }}
               >
                 총 {totalCalls.toLocaleString("ko-KR")}건
@@ -545,7 +545,7 @@ export function CallsPage() {
             style={{ borderBottom: "1px solid #e5edf5" }}
           >
             <SheetTitle
-              className="flex items-center gap-2 text-[18px] tracking-[-0.012em]"
+              className="text-soft-wrap flex items-center gap-2 text-[18px] tracking-[-0.012em]"
               style={{
                 color: "#061b31",
                 fontFamily: "var(--hds-font-display)",
@@ -562,7 +562,7 @@ export function CallsPage() {
           </SheetHeader>
 
           {selectedCallId && (
-            <div className="space-y-6 px-6 py-6">
+            <div className="space-y-6 px-4 py-5 sm:px-6 sm:py-6">
               {callDetailQuery.isError ? (
                 <div
                   className="rounded-[8px] px-3 py-3 text-[13px]"
@@ -587,17 +587,17 @@ export function CallsPage() {
                   }}
                 >
                   <InfoRow label="일시">
-                    <span className="hds-tnum">
+                    <span className="hds-tnum no-text-break">
                       {formatDateTimeShort(selectedCall.started_at)}
                     </span>
                   </InfoRow>
                   <InfoRow label="발신 번호">
-                    <span className="hds-tnum">
+                    <span className="hds-tnum no-text-break">
                       {formatCaller(selectedCall.caller_number)}
                     </span>
                   </InfoRow>
                   <InfoRow label="통화 시간">
-                    <span className="hds-tnum">
+                    <span className="hds-tnum no-text-break">
                       {formatDuration(selectedCall.duration_sec)}
                     </span>
                   </InfoRow>
@@ -618,14 +618,14 @@ export function CallsPage() {
 
               {/* Summary */}
               <div className="space-y-2">
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-center gap-2">
                   <MessageSquare
                     className="h-4 w-4"
                     style={{ color: "#533afd" }}
                     aria-hidden="true"
                   />
                   <h3
-                    className="text-[14px] tracking-[-0.008em]"
+                    className="text-soft-wrap text-[14px] tracking-[-0.008em]"
                     style={{
                       color: "#061b31",
                       fontFamily: "var(--hds-font-display)",
@@ -692,14 +692,14 @@ export function CallsPage() {
 
               {/* Transcripts */}
               <div className="space-y-3">
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-center gap-2">
                   <Clock
                     className="h-4 w-4"
                     style={{ color: "#533afd" }}
                     aria-hidden="true"
                   />
                   <h3
-                    className="text-[14px] tracking-[-0.008em]"
+                    className="text-soft-wrap text-[14px] tracking-[-0.008em]"
                     style={{
                       color: "#061b31",
                       fontFamily: "var(--hds-font-display)",
@@ -781,7 +781,7 @@ export function CallsPage() {
                           <div className="space-y-1">
                             <div className="flex flex-wrap items-center gap-2">
                               <p
-                                className="text-[11.5px]"
+                              className="no-text-break text-[11.5px]"
                                 style={{ color: "#64748d", fontWeight: 600 }}
                               >
                                 {getSpeakerLabel(msg.speaker)}
@@ -791,13 +791,13 @@ export function CallsPage() {
                               </StatusBadge>
                             </div>
                             <p
-                              className="text-[13px] leading-[1.6]"
+                              className="text-soft-wrap text-[13px] leading-[1.6]"
                               style={{ color: "#061b31", fontWeight: 500 }}
                             >
                               {msg.text}
                             </p>
                             <p
-                              className="hds-tnum text-[11px]"
+                              className="hds-tnum no-text-break text-[11px]"
                               style={{ color: "#94a3b8", fontWeight: 500 }}
                             >
                               {formatDateTime(msg.spoken_at)}
@@ -833,7 +833,7 @@ function PaginationButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="inline-flex h-8 items-center gap-1 rounded-[6px] px-2.5 text-[12px] transition-all"
+      className="no-text-break inline-flex h-8 items-center gap-1 rounded-[6px] px-2.5 text-[12px] transition-all"
       style={{
         color: disabled ? "#94a3b8" : "#273951",
         backgroundColor: "#ffffff",
@@ -875,13 +875,13 @@ function InfoRow({
       }}
     >
       <dt
-        className="w-[88px] shrink-0 text-[12.5px]"
+        className="no-text-break w-[88px] shrink-0 text-[12.5px]"
         style={{ color: "#64748d", fontWeight: 500 }}
       >
         {label}
       </dt>
       <dd
-        className="flex-1 text-[13px]"
+        className="min-w-0 flex-1 text-[13px]"
         style={{ color: "#061b31", fontWeight: 500 }}
       >
         {children}

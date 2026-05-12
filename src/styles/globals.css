@@ -197,6 +197,23 @@
   }
 }
 
+@layer utilities {
+  .responsive-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .no-text-break {
+    white-space: nowrap;
+    word-break: keep-all;
+  }
+
+  .text-soft-wrap {
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+}
+
 /* ============================================================
  * Landing-page utility classes (used by Hero/Features/etc.)
  * Naming: .hds-*  — keeps surface area scoped & inspectable.

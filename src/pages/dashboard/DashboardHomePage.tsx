@@ -77,14 +77,14 @@ function PageTopbar() {
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="sticky top-0 z-20 flex items-center justify-between gap-4 px-8 py-5 backdrop-blur-md"
+      className="sticky top-0 z-20 flex flex-wrap items-start justify-between gap-3 px-4 py-4 backdrop-blur-md sm:px-6 lg:px-8 lg:py-5"
       style={{
         backgroundColor: "rgba(255,255,255,0.92)",
         borderBottom: "1px solid #e5edf5",
         fontFamily: "var(--hds-font-body)",
       }}
     >
-      <div>
+      <div className="min-w-0 flex-1">
         <p
           className="text-[11.5px] uppercase"
           style={{
@@ -96,7 +96,7 @@ function PageTopbar() {
           홈
         </p>
         <h1
-          className="mt-0.5 text-[22px] tracking-[-0.018em]"
+          className="text-soft-wrap mt-0.5 text-[22px] tracking-[-0.018em]"
           style={{
             color: "#061b31",
             fontFamily: "var(--hds-font-display)",
@@ -108,7 +108,7 @@ function PageTopbar() {
         </h1>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
         <span
           className="hidden items-center gap-1.5 rounded-[4px] px-2.5 py-1 text-[11.5px] sm:inline-flex"
           style={{
@@ -227,7 +227,7 @@ function MetricCard({
 
   return (
     <div
-      className="rounded-[12px] p-5 transition-all duration-200"
+      className="min-w-0 rounded-[12px] p-5 transition-all duration-200"
       style={{
         backgroundColor: "#ffffff",
         border: "1px solid #e5edf5",
@@ -243,9 +243,9 @@ function MetricCard({
         e.currentTarget.style.boxShadow = "none";
       }}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex min-w-0 items-start justify-between gap-3">
         <p
-          className="text-[12px]"
+          className="no-text-break min-w-0 text-[12px]"
           style={{
             color: "#64748d",
             fontWeight: 500,
@@ -262,7 +262,7 @@ function MetricCard({
         </span>
       </div>
       <p
-        className="hds-tnum mt-3 text-[24px] tracking-[-0.014em]"
+        className="hds-tnum no-text-break mt-3 text-[24px] tracking-[-0.014em]"
         style={{
           color: value === "0" || value === "0%" ? "#cbd5e1" : "#061b31",
           fontFamily: "var(--hds-font-display)",
@@ -272,10 +272,10 @@ function MetricCard({
       >
         {value}
       </p>
-      <div className="mt-2 flex items-center gap-2">
+      <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
         {delta ? (
           <span
-            className="hds-tnum inline-flex items-center gap-0.5 text-[11.5px]"
+            className="hds-tnum no-text-break inline-flex shrink-0 items-center gap-0.5 text-[11.5px]"
             style={{ color: deltaColor, fontWeight: 600 }}
           >
             <DeltaIcon className="h-3 w-3" />
@@ -284,7 +284,7 @@ function MetricCard({
         ) : null}
         {hint ? (
           <span
-            className="text-[11.5px]"
+            className="text-soft-wrap min-w-0 text-[11.5px]"
             style={{ color: "#94a3b8", fontWeight: 500 }}
           >
             {hint}
@@ -367,7 +367,7 @@ function StatsGrid({
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 8 }).map((_, index) => (
           <div
             key={index}
@@ -392,7 +392,7 @@ function StatsGrid({
   if (error) {
     return (
       <div
-        className="flex items-center gap-3 rounded-[12px] px-4 py-4 text-[13px]"
+        className="text-soft-wrap flex items-center gap-3 rounded-[12px] px-4 py-4 text-[13px]"
         style={{
           backgroundColor: "rgba(234,34,97,0.04)",
           border: "1px solid rgba(234,34,97,0.25)",
@@ -420,11 +420,12 @@ function StatsGrid({
           transition: { staggerChildren: 0.04, delayChildren: 0.05 },
         },
       }}
-      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+      className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4"
     >
       {items.map((item) => (
         <motion.div
           key={item.label}
+          className="min-w-0"
           variants={{
             hidden: { opacity: 0, y: 10 },
             visible: {
@@ -458,7 +459,7 @@ function PriorityQueuePanel({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-      className="overflow-hidden rounded-[12px]"
+      className="min-w-0 overflow-hidden rounded-[12px]"
       style={{
         backgroundColor: "#ffffff",
         border: "1px solid #e5edf5",
@@ -473,7 +474,7 @@ function PriorityQueuePanel({
     return (
       <Shell>
         <div
-          className="flex items-center justify-between px-5 py-4"
+          className="flex flex-wrap items-center justify-between gap-3 px-5 py-4"
           style={{ borderBottom: "1px solid #e5edf5" }}
         >
           <Skeleton className="h-4 w-40" />
@@ -490,7 +491,7 @@ function PriorityQueuePanel({
   if (error) {
     return (
       <div
-        className="flex items-center gap-3 rounded-[12px] px-4 py-4 text-[13px]"
+        className="text-soft-wrap flex items-center gap-3 rounded-[12px] px-4 py-4 text-[13px]"
         style={{
           backgroundColor: "rgba(234,34,97,0.04)",
           border: "1px solid rgba(234,34,97,0.25)",
@@ -543,17 +544,17 @@ function PriorityQueuePanel({
   return (
     <Shell>
       <div
-        className="flex items-center justify-between px-5 py-4"
+        className="flex flex-wrap items-center justify-between gap-3 px-5 py-4"
         style={{ borderBottom: "1px solid #e5edf5" }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <ShieldAlert
             className="h-4 w-4"
             style={{ color: "#ea2261" }}
             strokeWidth={2}
           />
           <h2
-            className="text-[15px] tracking-[-0.01em]"
+            className="no-text-break text-[15px] tracking-[-0.01em]"
             style={{
               color: "#061b31",
               fontFamily: "var(--hds-font-display)",
@@ -564,7 +565,7 @@ function PriorityQueuePanel({
           </h2>
         </div>
         <span
-          className="hds-tnum inline-flex items-center gap-1 rounded-[4px] px-2 py-0.5 text-[11.5px]"
+          className="hds-tnum no-text-break inline-flex shrink-0 items-center gap-1 rounded-[4px] px-2 py-0.5 text-[11.5px]"
           style={{
             color: "#ea2261",
             backgroundColor: "rgba(234,34,97,0.10)",
@@ -592,18 +593,19 @@ function PriorityQueuePanel({
               borderTop: idx === 0 ? "none" : "1px solid #e5edf5",
             }}
           >
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex min-w-0 flex-wrap items-start justify-between gap-4 sm:flex-nowrap">
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-center gap-2">
                   <p
-                    className="truncate text-[13.5px]"
+                    className="min-w-0 truncate text-[13.5px]"
+                    title={alert.reason}
                     style={{ color: "#061b31", fontWeight: 600 }}
                   >
                     {alert.reason}
                   </p>
                 </div>
                 <p
-                  className="hds-tnum mt-0.5 text-[12px]"
+                  className="hds-tnum no-text-break mt-0.5 text-[12px]"
                   style={{ color: "#64748d", fontWeight: 500 }}
                 >
                   {alert.callerNumber}
@@ -621,7 +623,7 @@ function PriorityQueuePanel({
               </div>
               <div className="flex flex-col items-end gap-1.5">
                 <span
-                  className="inline-flex items-center rounded-[4px] px-2 py-0.5 text-[11px] uppercase"
+                  className="no-text-break inline-flex items-center rounded-[4px] px-2 py-0.5 text-[11px] uppercase"
                   style={{
                     color: "#ea2261",
                     backgroundColor: "rgba(234,34,97,0.10)",
@@ -633,7 +635,7 @@ function PriorityQueuePanel({
                   {alert.priority}
                 </span>
                 <p
-                  className="hds-tnum text-[11px] whitespace-nowrap"
+                  className="hds-tnum no-text-break text-[11px]"
                   style={{ color: "#94a3b8", fontWeight: 500 }}
                 >
                   {formatDateTime(alert.createdAt)}
@@ -694,7 +696,7 @@ export function DashboardHomePage() {
     >
       <PageTopbar />
 
-      <div className="space-y-6 px-8 py-6">
+      <div className="space-y-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
         {visibleAlertCount > 0 ? (
           <AlertBanner
             count={visibleAlertCount}
@@ -705,7 +707,7 @@ export function DashboardHomePage() {
 
         {statsQuery.isSuccess && stats.totalCalls === 0 ? (
           <div
-            className="flex items-start gap-3 rounded-[12px] px-4 py-3.5 text-[13px]"
+            className="text-soft-wrap flex items-start gap-3 rounded-[12px] px-4 py-3.5 text-[13px]"
             style={{
               backgroundColor: "#f6f9fc",
               border: "1px solid #e5edf5",
@@ -734,10 +736,10 @@ export function DashboardHomePage() {
 
         {/* Section: KPI overview */}
         <section className="space-y-3">
-          <header className="flex items-end justify-between">
-            <div>
+          <header className="flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0">
               <p
-                className="text-[11.5px] uppercase"
+                className="no-text-break text-[11.5px] uppercase"
                 style={{
                   color: "#94a3b8",
                   fontWeight: 600,
@@ -747,7 +749,7 @@ export function DashboardHomePage() {
                 개요
               </p>
               <h2
-                className="text-[16px] tracking-[-0.012em]"
+                className="text-soft-wrap text-[16px] tracking-[-0.012em]"
                 style={{
                   color: "#061b31",
                   fontFamily: "var(--hds-font-display)",
@@ -767,7 +769,7 @@ export function DashboardHomePage() {
         </section>
 
         {/* Section: VOC summary + intent chart */}
-        <section className="grid gap-4 md:grid-cols-2">
+        <section className="grid min-w-0 gap-4 md:grid-cols-2">
           <PeriodicVocSummary
             period={summaryPeriod}
             onPeriodChange={setSummaryPeriod}

@@ -54,7 +54,7 @@ function StatusBadge({
 }) {
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-[4px] px-1.5 py-0.5 text-[11.5px] leading-[1.4]"
+      className="no-text-break inline-flex shrink-0 items-center gap-1 rounded-[4px] px-1.5 py-0.5 text-[11.5px] leading-[1.4]"
       style={{
         ...badgeStyles[tone],
         fontFamily: "var(--hds-font-body)",
@@ -132,7 +132,7 @@ export function CallList() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-      className="overflow-hidden rounded-[12px]"
+      className="min-w-0 overflow-hidden rounded-[12px]"
       style={{
         backgroundColor: "#ffffff",
         border: "1px solid #e5edf5",
@@ -140,12 +140,12 @@ export function CallList() {
       }}
     >
       <div
-        className="flex items-center justify-between gap-3 px-5 py-4"
+        className="flex flex-wrap items-center justify-between gap-3 px-5 py-4"
         style={{ borderBottom: "1px solid #e5edf5" }}
       >
         <div className="min-w-0">
           <h2
-            className="text-[16px] tracking-[-0.012em]"
+            className="text-soft-wrap text-[16px] tracking-[-0.012em]"
             style={{
               color: "#061b31",
               fontFamily: "var(--hds-font-display)",
@@ -155,7 +155,7 @@ export function CallList() {
             최근 조치 필요 콜
           </h2>
           <p
-            className="mt-0.5 text-[12.5px]"
+            className="text-soft-wrap mt-0.5 text-[12.5px]"
             style={{ color: "#64748d", fontWeight: 500 }}
           >
             상담원 검토가 필요한 가장 최신 통화 10건
@@ -165,7 +165,7 @@ export function CallList() {
         <Link
           to="/dashboard/calls"
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-[8px] px-3 py-2 text-[12.5px] transition-all duration-150",
+            "no-text-break inline-flex shrink-0 items-center gap-1.5 rounded-[8px] px-3 py-2 text-[12.5px] transition-all duration-150",
           )}
           style={{
             color: "#273951",
@@ -188,9 +188,9 @@ export function CallList() {
         </Link>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="responsive-table-wrapper">
         <table
-          className="w-full border-collapse text-left"
+          className="w-full min-w-[760px] border-collapse text-left"
           style={{ fontVariantNumeric: "tabular-nums" }}
         >
           <thead>
@@ -331,7 +331,7 @@ export function CallList() {
                   <td className="px-4 py-3">
                     <div className="space-y-1">
                       <p
-                        className="line-clamp-2 text-[13px] leading-[1.5]"
+                        className="text-soft-wrap line-clamp-2 text-[13px] leading-[1.5]"
                         style={{ color: "#273951", fontWeight: 500 }}
                         title={summary}
                       >

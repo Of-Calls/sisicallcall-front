@@ -122,7 +122,7 @@ export function PriorityDistributionTable({
 
   return (
     <section
-      className="overflow-hidden rounded-[12px]"
+      className="min-w-0 overflow-hidden rounded-[12px]"
       style={{
         backgroundColor: "#ffffff",
         border: "1px solid #e5edf5",
@@ -130,12 +130,12 @@ export function PriorityDistributionTable({
       }}
     >
       <div
-        className="flex items-start justify-between gap-3 px-5 py-4"
+        className="flex flex-wrap items-start justify-between gap-3 px-5 py-4"
         style={{ borderBottom: "1px solid #e5edf5" }}
       >
-        <div>
+        <div className="min-w-0">
           <h3
-            className="text-[15px] tracking-[-0.01em]"
+            className="text-soft-wrap text-[15px] tracking-[-0.01em]"
             style={{
               color: "#061b31",
               fontFamily: "var(--hds-font-display)",
@@ -144,7 +144,7 @@ export function PriorityDistributionTable({
           >
             우선 순위 항목 분포
           </h3>
-          <p className="mt-0.5 text-[12.5px]" style={{ color: "#64748d", fontWeight: 500 }}>
+          <p className="text-soft-wrap mt-0.5 text-[12.5px]" style={{ color: "#64748d", fontWeight: 500 }}>
             긴급, 높음, 보통, 낮음 항목의 분포와 후속 조치 필요 건수를 확인합니다.
           </p>
         </div>
@@ -163,8 +163,8 @@ export function PriorityDistributionTable({
           </EmptyShell>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left" style={{ fontVariantNumeric: "tabular-nums" }}>
+        <div className="responsive-table-wrapper">
+          <table className="w-full min-w-[560px] border-collapse text-left" style={{ fontVariantNumeric: "tabular-nums" }}>
             <thead>
               <tr style={{ backgroundColor: "#f6f9fc", borderBottom: "1px solid #d6d9fc" }}>
                 <th

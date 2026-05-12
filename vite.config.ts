@@ -11,13 +11,7 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "auto",
-      includeAssets: [
-        "favicon.svg",
-        "apple-touch-icon.png",
-        "pwa-192x192.png",
-        "pwa-512x512.png",
-        "pwa-512x512-maskable.png",
-      ],
+      includeAssets: ["brand/sisicallcall-icon.png"],
       manifest: {
         name: "시시콜콜 관리자 대시보드",
         short_name: "시시콜콜",
@@ -30,20 +24,10 @@ export default defineConfig({
         scope: "/",
         icons: [
           {
-            src: "/pwa-192x192.png",
-            sizes: "192x192",
+            src: "/brand/sisicallcall-icon.png",
+            sizes: "1024x1024",
             type: "image/png",
-          },
-          {
-            src: "/pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-          },
-          {
-            src: "/pwa-512x512-maskable.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
+            purpose: "any maskable",
           },
         ],
       },

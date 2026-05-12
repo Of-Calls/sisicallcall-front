@@ -20,14 +20,14 @@ export function AlertBanner({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -12, scale: 0.99 }}
           transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-          className="flex items-center justify-between rounded-[8px] px-4 py-3"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-[8px] px-4 py-3"
           style={{
             backgroundColor: "rgba(234,34,97,0.04)",
             border: "1px solid rgba(234,34,97,0.25)",
             fontFamily: "var(--hds-font-body)",
           }}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -49,11 +49,11 @@ export function AlertBanner({
               initial={{ opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.12 }}
-              className="text-[13px]"
+              className="text-soft-wrap min-w-0 text-[13px]"
               style={{ color: "#061b31", fontWeight: 500, lineHeight: 1.5 }}
             >
               <span
-                className="mr-1.5 inline-flex items-center rounded-[4px] px-1.5 py-0.5 text-[11px] uppercase"
+                className="no-text-break mr-1.5 inline-flex items-center rounded-[4px] px-1.5 py-0.5 text-[11px] uppercase"
                 style={{
                   color: "#ea2261",
                   backgroundColor: "rgba(234,34,97,0.10)",
@@ -65,7 +65,7 @@ export function AlertBanner({
                 긴급
               </span>
               <span
-                className="hds-tnum"
+                className="hds-tnum no-text-break"
                 style={{ color: "#ea2261", fontWeight: 700 }}
               >
                 {count.toLocaleString("ko-KR")}건

@@ -19,12 +19,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/common/BrandLogo";
 import { IconButton } from "@/components/ui/icon-button";
 import { useDashboardEntryActions } from "@/components/landing/dashboard-entry-choice";
 import { cn } from "@/lib/utils";
-
-const logoSrc =
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-F73u93gxOEnKoM0ShWO9oUBWEHDlnw.png";
 
 const navItems = [
   {
@@ -146,28 +144,18 @@ export function Header() {
         <Link
           to="/"
           onClick={closeMobileMenu}
-          className="flex min-w-0 items-center gap-2.5"
+          className="flex min-w-0 items-center"
         >
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="flex items-center justify-center"
           >
-            <img
-              src={logoSrc}
-              alt="시시콜콜 로고"
-              width={40}
-              height={40}
-              className="max-w-[40px]"
-              style={{ mixBlendMode: "multiply" }}
+            <BrandLogo
+              variant="full"
+              className="h-10 w-auto max-w-[190px] sm:h-11 sm:max-w-[210px]"
             />
           </motion.div>
-          <span
-            className="truncate text-[18px] tracking-[-0.014em] text-[#061b31]"
-            style={{ fontFamily: "var(--hds-font-display)", fontWeight: 700 }}
-          >
-            시시콜콜
-          </span>
         </Link>
 
         <nav

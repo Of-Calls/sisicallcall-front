@@ -171,8 +171,8 @@ export function PdfUpload() {
     >
       <Card className="transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
         <CardHeader className="pb-2">
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-1">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 space-y-1">
               <CardTitle className="text-base font-semibold">PDF 매뉴얼 업로드</CardTitle>
               <CardDescription>
                 AI 에이전트가 참고할 고객용 매뉴얼을 업로드합니다.
@@ -200,7 +200,7 @@ export function PdfUpload() {
               scale: isDragOver ? 1.01 : 1,
             }}
             transition={{ duration: 0.2 }}
-            className="relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors"
+            className="relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-colors sm:p-8"
           >
             <input
               type="file"
@@ -221,12 +221,12 @@ export function PdfUpload() {
                 <FileUp className="h-6 w-6 text-muted-foreground" />
               )}
             </motion.div>
-            <p className="mb-1 text-sm font-medium text-foreground">
+            <p className="text-soft-wrap mb-1 text-sm font-medium text-foreground">
               {isUploading
                 ? "PDF 문서를 업로드하는 중입니다"
                 : "PDF 파일을 드래그해서 올려주세요"}
             </p>
-            <p className="mb-4 text-xs text-muted-foreground">
+            <p className="text-soft-wrap mb-4 text-xs text-muted-foreground">
               또는 클릭해서 파일을 선택하세요. 최대 10MB
             </p>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -263,9 +263,9 @@ export function PdfUpload() {
                     exit="exit"
                     transition={{ delay: idx * 0.05 }}
                     layout
-                    className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2"
+                    className="flex min-w-0 items-center justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
                       <motion.div
                         whileHover={{ rotate: 5 }}
                         transition={{ type: "spring", stiffness: 400 }}
@@ -276,9 +276,9 @@ export function PdfUpload() {
                           <FileText className="h-4 w-4 text-primary" />
                         )}
                       </motion.div>
-                      <div>
-                        <p className="text-sm font-medium">{file.name}</p>
-                        <p className="text-xs text-muted-foreground">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium" title={file.name}>{file.name}</p>
+                        <p className="no-text-break text-xs text-muted-foreground">
                           {file.size} · {getUploadStatusLabel(file.status)}
                         </p>
                       </div>

@@ -8,11 +8,9 @@ import {
   MessageSquareText,
   Phone,
 } from "lucide-react";
+import { BrandLogo } from "@/components/common/BrandLogo";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/shared/auth/authStore";
-
-const logoSrc =
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-F73u93gxOEnKoM0ShWO9oUBWEHDlnw.png";
 
 type MenuItem = {
   label: string;
@@ -71,6 +69,15 @@ const menuItemVariants = {
   }),
 };
 
+function getActiveHref(pathname: string) {
+  const allHrefs = menuGroups.flatMap((g) => g.items.map((i) => i.href));
+  return (
+    allHrefs
+      .filter((h) => pathname === h || pathname.startsWith(`${h}/`))
+      .sort((a, b) => b.length - a.length)[0] ?? null
+  );
+}
+
 export function DashboardSidebar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -85,14 +92,7 @@ export function DashboardSidebar() {
 
   // Match the active item against the longest matching href so nested routes
   // ("/dashboard/calls") don't also light up the root "/dashboard" entry.
-  const activeHref = (() => {
-    const allHrefs = menuGroups.flatMap((g) => g.items.map((i) => i.href));
-    return (
-      allHrefs
-        .filter((h) => pathname === h || pathname.startsWith(`${h}/`))
-        .sort((a, b) => b.length - a.length)[0] ?? null
-    );
-  })();
+  const activeHref = getActiveHref(pathname);
 
   let renderIndex = 0;
 
@@ -101,7 +101,7 @@ export function DashboardSidebar() {
       initial="hidden"
       animate="visible"
       variants={sidebarVariants}
-      className="flex h-screen w-[240px] shrink-0 flex-col"
+      className="hidden h-screen w-[240px] shrink-0 flex-col lg:flex"
       style={{
         backgroundColor: "#f6f9fc",
         borderRight: "1px solid #e5edf5",
@@ -117,24 +117,11 @@ export function DashboardSidebar() {
       >
         <Link
           to="/"
-          className="flex h-[60px] items-center gap-2.5 px-5 transition-colors"
+          className="flex h-[64px] items-center px-5 transition-colors"
           aria-label="홈으로 이동"
           style={{ color: "#061b31" }}
         >
-          <img
-            src={logoSrc}
-            alt="시시콜콜 로고"
-            width={32}
-            height={32}
-            className="max-w-[32px]"
-            style={{ mixBlendMode: "multiply" }}
-          />
-          <span
-            className="text-[16px] tracking-[-0.012em]"
-            style={{ fontFamily: "var(--hds-font-display)", fontWeight: 700 }}
-          >
-            시시콜콜
-          </span>
+          <BrandLogo variant="full" className="h-10 w-auto max-w-[190px]" />
         </Link>
       </motion.div>
 
@@ -271,5 +258,81 @@ export function DashboardSidebar() {
         </button>
       </div>
     </motion.aside>
+  );
+}
+
+export function DashboardMobileNav() {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const activeHref = getActiveHref(pathname);
+  const items = menuGroups.flatMap((group) => group.items);
+
+  const handleLogout = () => {
+    clearAuth();
+    navigate("/login", { replace: true });
+  };
+
+  return (
+    <header
+      className="shrink-0 lg:hidden"
+      style={{
+        backgroundColor: "#f6f9fc",
+        borderBottom: "1px solid #e5edf5",
+        fontFamily: "var(--hds-font-body)",
+      }}
+    >
+      <div className="flex h-14 items-center justify-between gap-3 px-4">
+        <Link
+          to="/"
+          className="flex min-w-0 items-center"
+          aria-label="홈으로 이동"
+          style={{ color: "#061b31" }}
+        >
+          <BrandLogo variant="full" className="h-8 w-auto max-w-[160px]" />
+        </Link>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] transition-colors"
+          style={{ color: "#273951", border: "1px solid #e5edf5" }}
+          aria-label="로그아웃"
+        >
+          <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
+        </button>
+      </div>
+
+      <nav className="overflow-x-auto px-3 pb-2">
+        <div className="flex min-w-max gap-1">
+          {items.map((item) => {
+            const isActive = activeHref === item.href;
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.href}
+                to={item.href}
+                className={cn(
+                  "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[6px] px-3 text-[12.5px] transition-colors duration-150",
+                  isActive
+                    ? "text-[#533afd]"
+                    : "text-[#273951] hover:bg-[#eef2f8] hover:text-[#061b31]",
+                )}
+                style={{
+                  fontWeight: isActive ? 600 : 500,
+                  backgroundColor: isActive
+                    ? "rgba(83,58,253,0.08)"
+                    : undefined,
+                }}
+              >
+                <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span className="whitespace-nowrap">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </header>
   );
 }

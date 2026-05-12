@@ -1,9 +1,7 @@
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, useInView } from "framer-motion";
-
-const logoSrc =
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-F73u93gxOEnKoM0ShWO9oUBWEHDlnw.png";
+import { BrandLogo } from "@/components/common/BrandLogo";
 
 const footerLinks = {
   제품: [
@@ -71,24 +69,11 @@ export function Footer() {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400 }}
               >
-                <img
-                  src={logoSrc}
-                  alt="시시콜콜 로고"
-                  width={32}
-                  height={32}
-                  className="rounded-[4px]"
-                  style={{ mixBlendMode: "multiply" }}
+                <BrandLogo
+                  variant="full"
+                  className="h-9 w-auto max-w-[180px]"
                 />
               </motion.div>
-              <span
-                className="text-[18px] tracking-[-0.014em] text-[#061b31]"
-                style={{
-                  fontFamily: "var(--hds-font-display)",
-                  fontWeight: 700,
-                }}
-              >
-                시시콜콜
-              </span>
             </Link>
             <p
               className="mt-5 max-w-xs text-[14px] leading-[1.6] text-[#64748d]"

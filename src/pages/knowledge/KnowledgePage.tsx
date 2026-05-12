@@ -242,7 +242,7 @@ function HdsButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-[6px] transition-all",
+        "no-text-break inline-flex shrink-0 items-center gap-1.5 rounded-[6px] transition-all",
         size === "sm" ? "h-8 px-3 text-[12.5px]" : "h-9 px-4 text-[13px]",
         className,
       )}
@@ -329,12 +329,12 @@ function SheetStatusNotice({
           fontFamily: "var(--hds-font-body)",
         }}
       >
-        <div className="flex items-start gap-3">
+        <div className="flex min-w-0 items-start gap-3">
           <Loader2
             className="mt-0.5 h-5 w-5 animate-spin shrink-0"
             style={{ color: "#533afd" }}
           />
-          <div className="space-y-1">
+          <div className="min-w-0 space-y-1">
             <p
               className="text-[13px]"
               style={{ color: "#533afd", fontWeight: 600 }}
@@ -342,7 +342,7 @@ function SheetStatusNotice({
               문서를 AI 상담 지식으로 정리하는 중입니다.
             </p>
             <p
-              className="text-[12.5px] leading-[1.55]"
+              className="text-soft-wrap text-[12.5px] leading-[1.55]"
               style={{ color: "#273951", fontWeight: 500 }}
             >
               잠시 후 자동으로 사용할 수 있습니다.
@@ -363,13 +363,13 @@ function SheetStatusNotice({
           fontFamily: "var(--hds-font-body)",
         }}
       >
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-3">
             <AlertCircle
               className="mt-0.5 h-5 w-5 shrink-0"
               style={{ color: "#ea2261" }}
             />
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <p
                 className="text-[13px]"
                 style={{ color: "#ea2261", fontWeight: 600 }}
@@ -377,7 +377,7 @@ function SheetStatusNotice({
                 문서 처리에 실패했습니다.
               </p>
               <p
-                className="text-[12.5px] leading-[1.55]"
+                className="text-soft-wrap text-[12.5px] leading-[1.55]"
                 style={{ color: "#273951", fontWeight: 500 }}
               >
                 다시 처리하면 문서를 다시 분석해서 상담 지식으로 준비합니다.
@@ -437,7 +437,7 @@ function DocumentRow({
       }}
     >
       <td className="px-4 py-3">
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <span
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[4px]"
             style={{
@@ -449,7 +449,8 @@ function DocumentRow({
             <FileText className="h-3.5 w-3.5" aria-hidden="true" />
           </span>
           <span
-            className="truncate text-[13px]"
+            className="min-w-0 truncate text-[13px]"
+            title={document.file_name}
             style={{ color: "#061b31", fontWeight: 600 }}
           >
             {document.file_name}
@@ -457,7 +458,7 @@ function DocumentRow({
         </div>
       </td>
       <td
-        className="hds-tnum px-4 py-3 text-[12.5px]"
+        className="hds-tnum no-text-break px-4 py-3 text-[12.5px]"
         style={{ color: "#64748d", fontWeight: 500 }}
       >
         {formatDateTime(document.uploaded_at)}
@@ -468,7 +469,7 @@ function DocumentRow({
         </StatusBadge>
       </td>
       <td
-        className="hds-tnum px-4 py-3 text-[13px]"
+        className="hds-tnum no-text-break px-4 py-3 text-[13px]"
         style={{ color: "#273951", fontWeight: 500 }}
       >
         {getCountLabel(chunkCount)}
@@ -595,7 +596,7 @@ function PageDetailPanel({
                     </h4>
                     {chunkView.summary ? (
                       <p
-                        className="text-[12.5px] leading-[1.55]"
+                        className="text-soft-wrap text-[12.5px] leading-[1.55]"
                         style={{ color: "#64748d", fontWeight: 500 }}
                       >
                         {chunkView.summary}
@@ -606,7 +607,7 @@ function PageDetailPanel({
                         {chunkView.keywords.map((keyword) => (
                           <span
                             key={`${rawChunk.id}-${keyword}`}
-                            className="rounded-[3px] px-1.5 py-0.5 text-[10.5px]"
+                            className="no-text-break rounded-[3px] px-1.5 py-0.5 text-[10.5px]"
                             style={{
                               color: "#64748d",
                               backgroundColor: "#f6f9fc",
@@ -623,7 +624,7 @@ function PageDetailPanel({
 
                   <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-3">
                     <p
-                      className="hds-tnum text-[11.5px]"
+                      className="hds-tnum no-text-break text-[11.5px]"
                       style={{ color: "#94a3b8", fontWeight: 500 }}
                     >
                       원문 항목 {index + 1}
@@ -648,7 +649,7 @@ function PageDetailPanel({
                       type="button"
                       onClick={() => toggleChunk(rawChunk.id)}
                       disabled={isEditing}
-                      className="inline-flex items-center gap-1 text-[12.5px] transition-colors"
+                      className="no-text-break inline-flex items-center gap-1 text-[12.5px] transition-colors"
                       style={{
                         color: isEditing ? "#94a3b8" : "#533afd",
                         fontWeight: 600,
@@ -710,7 +711,7 @@ function PageDetailPanel({
                         </div>
                       ) : (
                         <p
-                          className="text-[13px] leading-[1.6]"
+                          className="text-soft-wrap text-[13px] leading-[1.6]"
                           style={{ color: "#273951", fontWeight: 500 }}
                         >
                           {rawChunk.content}
@@ -1155,13 +1156,13 @@ export function KnowledgePage() {
         }
       />
 
-      <div className="space-y-6 px-8 py-6">
+      <div className="space-y-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
         {/* Upload card */}
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="overflow-hidden rounded-[12px]"
+          className="min-w-0 overflow-hidden rounded-[12px]"
           style={{
             backgroundColor: "#ffffff",
             border: "1px solid #e5edf5",
@@ -1169,12 +1170,12 @@ export function KnowledgePage() {
           }}
         >
           <div
-            className="flex items-start justify-between gap-3 px-5 py-4"
+            className="flex flex-wrap items-start justify-between gap-3 px-5 py-4"
             style={{ borderBottom: "1px solid #e5edf5" }}
           >
-            <div className="flex items-start gap-2.5">
+            <div className="flex min-w-0 items-start gap-2.5">
               <span
-                className="flex h-7 w-7 items-center justify-center rounded-[6px]"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px]"
                 style={{
                   color: "#533afd",
                   backgroundColor: "rgba(83,58,253,0.08)",
@@ -1183,9 +1184,9 @@ export function KnowledgePage() {
               >
                 <FileUp className="h-3.5 w-3.5" aria-hidden="true" />
               </span>
-              <div>
+              <div className="min-w-0">
                 <h2
-                  className="text-[15px] tracking-[-0.01em]"
+                  className="text-soft-wrap text-[15px] tracking-[-0.01em]"
                   style={{
                     color: "#061b31",
                     fontFamily: "var(--hds-font-display)",
@@ -1195,7 +1196,7 @@ export function KnowledgePage() {
                   PDF 문서 업로드
                 </h2>
                 <p
-                  className="mt-0.5 text-[12.5px]"
+                  className="text-soft-wrap mt-0.5 text-[12.5px]"
                   style={{ color: "#64748d", fontWeight: 500 }}
                 >
                   상담 매뉴얼, 운영 안내, 예약 규정 같은 문서를 업로드하면 AI
@@ -1211,7 +1212,7 @@ export function KnowledgePage() {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               className={cn(
-                "relative flex flex-col items-center justify-center rounded-[8px] p-12 transition-all",
+                "relative flex flex-col items-center justify-center rounded-[8px] p-6 text-center transition-all sm:p-12",
                 isUploadDisabled ? "cursor-not-allowed" : "cursor-pointer",
               )}
               style={{
@@ -1243,7 +1244,7 @@ export function KnowledgePage() {
               </div>
 
               <p
-                className="mb-1 text-[15px] tracking-[-0.008em]"
+                className="text-soft-wrap mb-1 text-[15px] tracking-[-0.008em]"
                 style={{
                   color: "#061b31",
                   fontFamily: "var(--hds-font-display)",
@@ -1257,7 +1258,7 @@ export function KnowledgePage() {
                     : "PDF 파일을 드래그하거나 업로드해 주세요"}
               </p>
               <p
-                className="mb-4 text-[12.5px]"
+                className="text-soft-wrap mb-4 text-[12.5px]"
                 style={{ color: "#64748d", fontWeight: 500 }}
               >
                 또는 클릭해서 파일을 선택할 수 있습니다.
@@ -1273,14 +1274,14 @@ export function KnowledgePage() {
               />
 
               <div
-                className="pointer-events-none inline-flex h-9 items-center rounded-[6px] px-4 text-[13px]"
+                className="no-text-break pointer-events-none inline-flex h-9 items-center rounded-[6px] px-4 text-[13px]"
                 style={getBtnStyle("primary", isUploadDisabled)}
               >
                 {isUploading ? "업로드 중..." : "파일 선택"}
               </div>
 
               <p
-                className="hds-tnum mt-4 text-[11.5px]"
+                className="hds-tnum no-text-break mt-4 text-[11.5px]"
                 style={{ color: "#94a3b8", fontWeight: 500 }}
               >
                 PDF 형식만 지원합니다. (최대 50MB)
@@ -1311,12 +1312,12 @@ export function KnowledgePage() {
           }}
         >
           <div
-            className="flex items-center justify-between gap-3 px-5 py-4"
+            className="flex flex-wrap items-center justify-between gap-3 px-5 py-4"
             style={{ borderBottom: "1px solid #e5edf5" }}
           >
-            <div className="flex items-center gap-2.5">
+            <div className="flex min-w-0 items-center gap-2.5">
               <span
-                className="flex h-7 w-7 items-center justify-center rounded-[6px]"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px]"
                 style={{
                   color: "#533afd",
                   backgroundColor: "rgba(83,58,253,0.08)",
@@ -1326,7 +1327,7 @@ export function KnowledgePage() {
                 <FileText className="h-3.5 w-3.5" aria-hidden="true" />
               </span>
               <h2
-                className="text-[15px] tracking-[-0.01em]"
+                className="text-soft-wrap text-[15px] tracking-[-0.01em]"
                 style={{
                   color: "#061b31",
                   fontFamily: "var(--hds-font-display)",
@@ -1352,9 +1353,9 @@ export function KnowledgePage() {
             </p>
           ) : null}
 
-          <div className="overflow-x-auto">
+          <div className="responsive-table-wrapper">
             <table
-              className="w-full border-collapse text-left"
+              className="w-full min-w-[780px] border-collapse text-left"
               style={{ fontVariantNumeric: "tabular-nums" }}
             >
               <thead>
@@ -1464,12 +1465,12 @@ export function KnowledgePage() {
           {selectedDocument ? (
             <>
               <SheetHeader
-                className="gap-4 px-6 pb-5"
+                className="gap-4 px-4 pb-5 sm:px-6"
                 style={{ borderBottom: "1px solid #e5edf5" }}
               >
-                <div className="pr-10">
+                <div className="min-w-0 pr-10">
                   <SheetTitle
-                    className="text-[20px] tracking-[-0.014em]"
+                    className="text-soft-wrap text-[20px] tracking-[-0.014em]"
                     style={{
                       color: "#061b31",
                       fontFamily: "var(--hds-font-display)",
@@ -1479,7 +1480,7 @@ export function KnowledgePage() {
                     {selectedDocument.file_name}
                   </SheetTitle>
                   <SheetDescription
-                    className="mt-1 text-[12.5px] leading-[1.55]"
+                    className="text-soft-wrap mt-1 text-[12.5px] leading-[1.55]"
                     style={{ color: "#64748d", fontWeight: 500 }}
                   >
                     AI 상담원이 참고할 수 있도록 문서 내용을 페이지별로
@@ -1496,14 +1497,14 @@ export function KnowledgePage() {
                   </StatusBadge>
                   <span style={{ color: "#94a3b8" }}>·</span>
                   <span
-                    className="hds-tnum"
+                    className="hds-tnum no-text-break"
                     style={{ color: "#64748d", fontWeight: 500 }}
                   >
                     페이지 {pageViews.length}개
                   </span>
                   <span style={{ color: "#94a3b8" }}>·</span>
                   <span
-                    className="hds-tnum"
+                    className="hds-tnum no-text-break"
                     style={{ color: "#64748d", fontWeight: 500 }}
                   >
                     마지막 반영{" "}
@@ -1528,7 +1529,7 @@ export function KnowledgePage() {
 
                 {chunkError ? (
                   <p
-                    className="rounded-[8px] px-3 py-2 text-[12.5px]"
+                    className="text-soft-wrap rounded-[8px] px-3 py-2 text-[12.5px]"
                     style={{
                       backgroundColor: "rgba(234,34,97,0.04)",
                       border: "1px solid rgba(234,34,97,0.25)",
@@ -1561,11 +1562,11 @@ export function KnowledgePage() {
                 </div>
               </SheetHeader>
 
-              <div className="px-6 py-5">
+              <div className="px-4 py-5 sm:px-6">
                 {chunksQuery.isLoading ? (
                   <div className="space-y-4">
                     <Skeleton className="h-12 w-full rounded-[8px]" />
-                    <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+                    <div className="grid min-w-0 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
                       <PageListSkeleton />
                       <Skeleton className="h-[520px] w-full rounded-[8px]" />
                     </div>
@@ -1626,7 +1627,7 @@ export function KnowledgePage() {
                           </p>
                         </div>
                       ) : (
-                        <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+                        <div className="grid min-w-0 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
                           <div
                             className="overflow-hidden rounded-[12px]"
                             style={{
@@ -1668,7 +1669,7 @@ export function KnowledgePage() {
                                         setSelectedPageId(page.id)
                                       }
                                       className={cn(
-                                        "relative w-full rounded-[8px] p-3 text-left transition-colors",
+                                        "relative w-full min-w-0 rounded-[8px] p-3 text-left transition-colors",
                                       )}
                                       style={{
                                         backgroundColor: isActive
@@ -1696,7 +1697,7 @@ export function KnowledgePage() {
                                           style={{ backgroundColor: "#533afd" }}
                                         />
                                       ) : null}
-                                      <div className="flex items-center gap-2">
+                                      <div className="flex min-w-0 items-center gap-2">
                                         <span
                                           className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px]"
                                           style={{
@@ -1712,7 +1713,7 @@ export function KnowledgePage() {
                                           <FileText className="h-3 w-3" aria-hidden="true" />
                                         </span>
                                         <p
-                                          className="hds-tnum text-[13px]"
+                                          className="hds-tnum no-text-break text-[13px]"
                                           style={{
                                             color: isActive
                                               ? "#533afd"
@@ -1723,7 +1724,7 @@ export function KnowledgePage() {
                                           {page.label}
                                         </p>
                                         <span
-                                          className="hds-tnum text-[11.5px]"
+                                          className="hds-tnum no-text-break text-[11.5px]"
                                           style={{ color: "#94a3b8", fontWeight: 500 }}
                                         >
                                           · 항목 {page.chunkCount}개
@@ -1731,7 +1732,7 @@ export function KnowledgePage() {
                                       </div>
                                       {page.previewTitles.length > 0 ? (
                                         <p
-                                          className="mt-1.5 line-clamp-2 text-[12px] leading-[1.55]"
+                                          className="text-soft-wrap mt-1.5 line-clamp-2 text-[12px] leading-[1.55]"
                                           style={{
                                             color: "#64748d",
                                             fontWeight: 500,
