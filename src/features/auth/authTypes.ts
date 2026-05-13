@@ -25,7 +25,8 @@ export type LoginRequest = {
 }
 
 export type LoginResponseData = {
-  access_token: string
+  access_token?: string
+  accessToken?: string
   token_type: "bearer"
   user: AdminUser
   tenant: Tenant

@@ -11,11 +11,12 @@ import {
   User,
 } from "lucide-react";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   CountChip,
@@ -528,23 +529,24 @@ export function CallsPage() {
       </div>
 
       {/* Call detail Sheet */}
-      <Sheet
+      <Dialog
         open={!!selectedCallId}
         onOpenChange={(open) => !open && setSelectedCallId(null)}
       >
-        <SheetContent
-          className="w-full overflow-y-auto p-0 sm:max-w-lg"
+        <DialogContent
+          key={selectedCallId ?? "call-detail"}
+          className="w-[95vw] max-w-5xl max-h-[80vh] overflow-y-auto p-0 sm:!max-w-5xl"
           style={{
             backgroundColor: "#ffffff",
             fontFamily: "var(--hds-font-body)",
             color: "#061b31",
           }}
         >
-          <SheetHeader
+          <DialogHeader
             className="gap-0 px-6 py-5"
             style={{ borderBottom: "1px solid #e5edf5" }}
           >
-            <SheetTitle
+                                    <DialogTitle
               className="text-soft-wrap flex items-center gap-2 text-[18px] tracking-[-0.012em]"
               style={{
                 color: "#061b31",
@@ -557,9 +559,15 @@ export function CallsPage() {
                 style={{ color: "#533afd" }}
                 aria-hidden="true"
               />
-              통화 상세 정보
-            </SheetTitle>
-          </SheetHeader>
+              통화 이력 상세보기
+            </DialogTitle>
+            <DialogDescription
+              className="mt-1 text-[12.5px] leading-[1.55]"
+              style={{ color: "#64748d", fontWeight: 500 }}
+            >
+              선택한 통화의 기본 정보, 요약, 대화 내용, VOC와 후속조치 정보를 확인합니다.
+            </DialogDescription>
+          </DialogHeader>
 
           {selectedCallId && (
             <div className="space-y-6 px-4 py-5 sm:px-6 sm:py-6">
@@ -811,8 +819,8 @@ export function CallsPage() {
               </div>
             </div>
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </PageShell>
   );
 }

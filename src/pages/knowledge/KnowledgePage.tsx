@@ -29,12 +29,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -1448,14 +1448,15 @@ export function KnowledgePage() {
       </div>
 
       {/* ─────────── Detail Sheet ─────────── */}
-      <Sheet
+      <Dialog
         open={Boolean(selectedDocumentId)}
         onOpenChange={(open) => {
-          if (!open && !isChunkMutationPending) resetSheetState(true);
+          if (!open) resetSheetState(true);
         }}
       >
-        <SheetContent
-          className="w-full overflow-y-auto px-0 sm:max-w-5xl"
+        <DialogContent
+          key={selectedDocumentId ?? "document-detail"}
+          className="w-[95vw] max-w-5xl max-h-[80vh] overflow-y-auto px-0 sm:!max-w-5xl"
           style={{
             backgroundColor: "#ffffff",
             fontFamily: "var(--hds-font-body)",
@@ -1464,12 +1465,12 @@ export function KnowledgePage() {
         >
           {selectedDocument ? (
             <>
-              <SheetHeader
+              <DialogHeader
                 className="gap-4 px-4 pb-5 sm:px-6"
                 style={{ borderBottom: "1px solid #e5edf5" }}
               >
                 <div className="min-w-0 pr-10">
-                  <SheetTitle
+                                                      <DialogTitle
                     className="text-soft-wrap text-[20px] tracking-[-0.014em]"
                     style={{
                       color: "#061b31",
@@ -1477,15 +1478,15 @@ export function KnowledgePage() {
                       fontWeight: 700,
                     }}
                   >
-                    {selectedDocument.file_name}
-                  </SheetTitle>
-                  <SheetDescription
+                    등록된 문서 내용 보기
+                  </DialogTitle>
+                  <DialogDescription
                     className="text-soft-wrap mt-1 text-[12.5px] leading-[1.55]"
                     style={{ color: "#64748d", fontWeight: 500 }}
                   >
                     AI 상담원이 참고할 수 있도록 문서 내용을 페이지별로
                     정리했습니다.
-                  </SheetDescription>
+                  </DialogDescription>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 text-[12.5px]">
@@ -1560,7 +1561,7 @@ export function KnowledgePage() {
                     }}
                   />
                 </div>
-              </SheetHeader>
+              </DialogHeader>
 
               <div className="px-4 py-5 sm:px-6">
                 {chunksQuery.isLoading ? (
@@ -1780,8 +1781,8 @@ export function KnowledgePage() {
               <Skeleton className="h-[520px] w-full rounded-[8px]" />
             </div>
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       <DeleteDocumentDialog
         document={documentToDelete}

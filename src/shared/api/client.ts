@@ -1,4 +1,7 @@
-import { useAuthStore } from "@/shared/auth/authStore"
+import {
+  ACCESS_TOKEN_KEY,
+  useAuthStore,
+} from "@/shared/auth/authStore"
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"
@@ -45,7 +48,10 @@ export async function apiFetch<T>(
   options: ApiFetchOptions = {},
 ): Promise<T> {
   const { skipAuth, headers, ...fetchOptions } = options
-  const token = useAuthStore.getState().accessToken
+  const token =
+    typeof window === "undefined"
+      ? null
+      : localStorage.getItem(ACCESS_TOKEN_KEY)
   const isFormData = fetchOptions.body instanceof FormData
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -59,10 +65,9 @@ export async function apiFetch<T>(
 
   if (response.status === 401) {
     useAuthStore.getState().clearAuth()
-    if (window.location.pathname !== "/login") {
-      window.location.assign("/login")
-    }
-    throw new Error("로그인이 만료되었습니다. 다시 로그인해 주세요.")
+    throw new Error(
+      "인증이 만료되었습니다. 다시 로그인해 주세요.",
+    )
   }
 
   if (response.status === 403) {
@@ -70,7 +75,9 @@ export async function apiFetch<T>(
   }
 
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as ApiErrorResponse | null
+    const body = (await response.json().catch(() => null)) as
+      | ApiErrorResponse
+      | null
     throw new Error(body?.error?.message ?? `API request failed: ${response.status}`)
   }
 

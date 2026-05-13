@@ -1,15 +1,15 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom"
-import { useAuthStore } from "@/shared/auth/authStore"
+import { Navigate } from "react-router-dom"
+import { LandingPage } from "@/pages/landing/LandingPage"
 import { Spinner } from "@/components/ui/spinner"
+import { useAuthStore } from "@/shared/auth/authStore"
 
-export function ProtectedRoute() {
-  const location = useLocation()
+export function LandingIndexRoute() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const isLoading = useAuthStore((state) => state.isLoading)
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <Spinner className="size-4" />
           <span>Authenticating...</span>
@@ -18,9 +18,9 @@ export function ProtectedRoute() {
     )
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />
   }
 
-  return <Outlet />
+  return <LandingPage />
 }

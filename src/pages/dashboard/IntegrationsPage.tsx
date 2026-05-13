@@ -1,19 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ReactElement } from "react";
+
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import type { LucideIcon } from "lucide-react";
 import {
   AlertCircle,
   Bug,
-  CalendarDays,
   ExternalLink,
-  FileText,
   Link2,
-  Mail,
-  MessageSquareText,
   Phone,
 } from "lucide-react";
+import {
+  SiGmail,
+  SiGooglecalendar,
+  SiJira,
+  SiNotion,
+  SiSlack,
+} from "react-icons/si";
 import {
   CountChip,
   PageShell,
@@ -79,7 +83,8 @@ type IntegrationCard = {
   id: CardId;
   name: string;
   description: string;
-  icon: LucideIcon;
+  icon: (className?: string) => ReactElement;
+  iconColor: string;
   /** OAuth 연동 대상이 아닌 경우 (서버 설정으로만 관리) */
   serverManaged?: boolean;
 };
@@ -89,38 +94,44 @@ const integrations: IntegrationCard[] = [
     id: "gmail",
     name: "Gmail",
     description: "통화 요약 메일 발송에 사용됩니다.",
-    icon: Mail,
+    icon: (className) => <SiGmail className={className} aria-hidden="true" />,
+    iconColor: "#EA4335",
   },
   {
     id: "google-calendar",
     name: "Google Calendar",
     description: "예약 일정 생성에 사용됩니다.",
-    icon: CalendarDays,
+    icon: (className) => <SiGooglecalendar className={className} aria-hidden="true" />,
+    iconColor: "#4285F4",
   },
   {
     id: "slack",
     name: "Slack",
     description: "상담 알림과 운영 이슈 공유에 사용됩니다.",
-    icon: MessageSquareText,
+    icon: (className) => <SiSlack className={className} aria-hidden="true" />,
+    iconColor: "#4A154B",
   },
   {
     id: "jira",
     name: "Jira",
     description: "이슈 생성과 후속 작업 관리에 사용됩니다.",
-    icon: Bug,
+    icon: (className) => <SiJira className={className} aria-hidden="true" />,
+    iconColor: "#0052CC",
   },
   {
     id: "notion",
     name: "Notion",
     description: "상담 기록과 운영 문서를 동기화합니다. (서버 설정 기반)",
-    icon: FileText,
+    icon: (className) => <SiNotion className={className} aria-hidden="true" />,
+    iconColor: "#000000",
     serverManaged: true,
   },
   {
     id: "sms",
     name: "SMS",
     description: "통화 후 SMS 안내 발송에 사용됩니다. (서버 설정 기반)",
-    icon: Phone,
+    icon: (className) => <Phone className={className} aria-hidden="true" />,
+    iconColor: "#64748d",
     serverManaged: true,
   },
 ];
@@ -273,6 +284,24 @@ function getButtonStyle(
 }
 
 // ── 메인 컴포넌트 ───────────────────────────────────────────────────────────────
+
+function getIntegrationIconBoxStyle(color: string): React.CSSProperties {
+  const lowered = color.toLowerCase()
+
+  if (lowered === "#000000") {
+    return {
+      color,
+      backgroundColor: "rgba(0,0,0,0.06)",
+      border: "1px solid rgba(0,0,0,0.18)",
+    }
+  }
+
+  return {
+    color,
+    backgroundColor: `${color}14`,
+    border: `1px solid ${color}33`,
+  }
+}
 
 export function IntegrationsPage() {
   const tenant = useAuthStore((state) => state.tenant);
@@ -474,7 +503,7 @@ export function IntegrationsPage() {
             {integrations.map((item, index) => {
               const state = getDisplayState(item);
               const meta = displayMetaFor(state);
-              const Icon = item.icon;
+
               const oauthProvider = OAUTH_PROVIDER_MAP[item.id];
               const data = oauthProvider ? statusMap[oauthProvider] : undefined;
 
@@ -506,13 +535,9 @@ export function IntegrationsPage() {
                   <div className="flex min-w-0 items-start justify-between gap-3">
                     <span
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px]"
-                      style={{
-                        color: "#533afd",
-                        backgroundColor: "rgba(83,58,253,0.08)",
-                        border: "1px solid rgba(83,58,253,0.20)",
-                      }}
+                      style={getIntegrationIconBoxStyle(item.iconColor)}
                     >
-                      <Icon className="h-4.5 w-4.5" aria-hidden="true" />
+                      {item.icon("h-4.5 w-4.5")}
                     </span>
                     <StatusBadge tone={meta.badgeTone}>
                       {meta.badgeLabel}

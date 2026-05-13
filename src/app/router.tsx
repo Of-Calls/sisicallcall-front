@@ -1,9 +1,9 @@
 import { createBrowserRouter, Navigate } from "react-router-dom"
 import { LoginPage } from "@/features/auth/LoginPage"
 import { LandingLayout } from "@/pages/landing/LandingLayout"
+import { LandingIndexRoute } from "@/pages/landing/LandingIndexRoute"
 import { LandingPage } from "@/pages/landing/LandingPage"
 import { DashboardLayout } from "@/pages/dashboard/DashboardLayout"
-import { DashboardAccessGate } from "@/pages/dashboard/DashboardAccessGate"
 import { DashboardHomePage } from "@/pages/dashboard/DashboardHomePage"
 import { IntegrationsPage } from "@/pages/dashboard/IntegrationsPage"
 import { CallsPage } from "@/pages/calls/CallsPage"
@@ -16,7 +16,7 @@ export const router = createBrowserRouter([
     path: "/",
     element: <LandingLayout />,
     children: [
-      { index: true, element: <LandingPage /> },
+      { index: true, element: <LandingIndexRoute /> },
       { path: "intro", element: <LandingPage /> },
       { path: "about", element: <LandingPage /> },
     ],
@@ -26,22 +26,17 @@ export const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
-    element: <DashboardAccessGate />,
+    element: <ProtectedRoute />,
     children: [
       {
-        element: <ProtectedRoute />,
+        path: "/dashboard",
+        element: <DashboardLayout />,
         children: [
-          {
-            path: "/dashboard",
-            element: <DashboardLayout />,
-            children: [
-              { index: true, element: <DashboardHomePage /> },
-              { path: "integrations", element: <IntegrationsPage /> },
-              { path: "calls", element: <CallsPage /> },
-              { path: "voc", element: <VocPage /> },
-              { path: "knowledge", element: <KnowledgePage /> },
-            ],
-          },
+          { index: true, element: <DashboardHomePage /> },
+          { path: "integrations", element: <IntegrationsPage /> },
+          { path: "calls", element: <CallsPage /> },
+          { path: "voc", element: <VocPage /> },
+          { path: "knowledge", element: <KnowledgePage /> },
         ],
       },
     ],
