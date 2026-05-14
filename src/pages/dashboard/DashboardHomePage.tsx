@@ -1,4 +1,4 @@
-import { useMemo, useState, type ComponentType, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ComponentType, type CSSProperties, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -37,8 +37,47 @@ import type {
   DashboardAlert,
   DashboardOverview,
 } from "@/features/dashboard/dashboardTypes";
+import { useAuthStore } from "@/shared/auth/authStore";
 
 const intentDistributionQueryParams = { limit: 5 } as const;
+const DISMISSED_ALERT_IDS_STORAGE_PREFIX =
+  "sisicallcall_dashboard_dismissed_alert_ids";
+
+function getDismissedAlertStorageKey(tenantId: string | null) {
+  return `${DISMISSED_ALERT_IDS_STORAGE_PREFIX}:${tenantId ?? "global"}`;
+}
+
+function readDismissedAlertIds(storageKey: string): Set<string> {
+  if (typeof window === "undefined") {
+    return new Set();
+  }
+
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return new Set();
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return new Set();
+
+    return new Set(
+      parsed.filter((value): value is string => typeof value === "string"),
+    );
+  } catch {
+    return new Set();
+  }
+}
+
+function writeDismissedAlertIds(storageKey: string, ids: Set<string>) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(Array.from(ids)));
+  } catch {
+    // Ignore storage quota / privacy-mode failures.
+  }
+}
 
 const emptyStats: DashboardOverview = {
   totalCalls: 0,
@@ -653,7 +692,14 @@ function PriorityQueuePanel({
  * Page
  * ============================================================ */
 export function DashboardHomePage() {
-  const [showAlert, setShowAlert] = useState(true);
+  const tenantId = useAuthStore((state) => state.tenant?.id ?? null);
+  const storageKey = useMemo(
+    () => getDismissedAlertStorageKey(tenantId),
+    [tenantId],
+  );
+  const [dismissedAlertIds, setDismissedAlertIds] = useState<Set<string>>(
+    () => readDismissedAlertIds(storageKey),
+  );
   const [summaryPeriod, setSummaryPeriod] = useState<VocSummaryPeriod>("week");
   const statsQuery = useDashboardStats();
   const summaryRange = useMemo(
@@ -678,6 +724,10 @@ export function DashboardHomePage() {
   const alerts = priorityQueueQuery.data?.items ?? [];
   const intentDistribution = intentDistributionQuery.data ?? null;
   const visibleAlerts = alerts.filter((item) => {
+    if (dismissedAlertIds.has(item.id)) {
+      return false;
+    }
+
     if (typeof item.followUpRequired === "boolean") {
       return item.followUpRequired;
     }
@@ -685,6 +735,23 @@ export function DashboardHomePage() {
     return true;
   });
   const visibleAlertCount = visibleAlerts.length;
+
+  useEffect(() => {
+    setDismissedAlertIds(readDismissedAlertIds(storageKey));
+  }, [storageKey]);
+
+  const handleDismissAlertBanner = () => {
+    setDismissedAlertIds((current) => {
+      const nextDismissedIds = new Set(current);
+
+      visibleAlerts.forEach((alert) => {
+        nextDismissedIds.add(alert.id);
+      });
+
+      writeDismissedAlertIds(storageKey, nextDismissedIds);
+      return nextDismissedIds;
+    });
+  };
 
   return (
     <div
@@ -700,8 +767,7 @@ export function DashboardHomePage() {
         {visibleAlertCount > 0 ? (
           <AlertBanner
             count={visibleAlertCount}
-            onDismiss={() => setShowAlert(false)}
-            isVisible={showAlert}
+            onDismiss={handleDismissAlertBanner}
           />
         ) : null}
 
