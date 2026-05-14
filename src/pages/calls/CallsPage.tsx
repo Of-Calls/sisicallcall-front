@@ -16,6 +16,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  LARGE_DIALOG_CONTENT_CLASSNAME,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -91,7 +92,7 @@ function getStatusBadgeTone(
 
 /* MCP provider → token tone (we drop ad-hoc colors per the spec) */
 function getMcpActionKey(action: McpActionLog): string {
-  return action.action_detail ?? action.action_type ?? ""
+  return action.action_detail ?? action.action_type ?? "";
 }
 
 function getMcpProviderBadgeTone(
@@ -138,16 +139,16 @@ function getMcpStatusLabel(status: McpActionStatus | string): string {
 }
 
 function getMcpActionMessage(action: McpActionLog): string {
-  const actionKey = getMcpActionKey(action)
+  const actionKey = getMcpActionKey(action);
 
   if (action.status === "success") {
-    if (actionKey === "gmail") return "GMail에 메일 보내기 성공"
-    if (actionKey === "slack") return "Slack에 메시지 보내기 성공"
+    if (actionKey === "gmail") return "GMail에 메일 보내기 성공";
+    if (actionKey === "slack") return "Slack에 메시지 보내기 성공";
     if (actionKey === "calendar")
-      return "Google Calendar에 예약 내역 저장 성공"
+      return "Google Calendar에 예약 내역 저장 성공";
   }
 
-  return actionKey || "알 수 없는 액션"
+  return actionKey || "알 수 없는 액션";
 }
 
 function CallsTableSkeleton() {
@@ -221,7 +222,7 @@ function McpActionLogsSection({
       ) : (
         <div className="space-y-3">
           {actions.map((action) => {
-            const actionKey = getMcpActionKey(action)
+            const actionKey = getMcpActionKey(action);
             const providerLabel = getMcpProviderLabel(actionKey);
 
             return (
@@ -462,7 +463,10 @@ export function CallsPage() {
                             <StatusBadge tone="neutral">{intent}</StatusBadge>
                           ) : null}
                           {summary ? (
-                            <p className="text-soft-wrap line-clamp-2 leading-[1.55]" title={summary}>
+                            <p
+                              className="text-soft-wrap line-clamp-2 leading-[1.55]"
+                              title={summary}
+                            >
                               {summary}
                             </p>
                           ) : (
@@ -533,9 +537,9 @@ export function CallsPage() {
         open={!!selectedCallId}
         onOpenChange={(open) => !open && setSelectedCallId(null)}
       >
-        <DialogContent
-          key={selectedCallId ?? "call-detail"}
-          className="w-[95vw] max-w-5xl max-h-[80vh] overflow-y-auto p-0 sm:!max-w-5xl"
+      <DialogContent
+        key={selectedCallId ?? "call-detail"}
+          className={`${LARGE_DIALOG_CONTENT_CLASSNAME} p-0`}
           style={{
             backgroundColor: "#ffffff",
             fontFamily: "var(--hds-font-body)",
@@ -546,7 +550,7 @@ export function CallsPage() {
             className="gap-0 px-6 py-5"
             style={{ borderBottom: "1px solid #e5edf5" }}
           >
-                                    <DialogTitle
+            <DialogTitle
               className="text-soft-wrap flex items-center gap-2 text-[18px] tracking-[-0.012em]"
               style={{
                 color: "#061b31",
@@ -565,7 +569,8 @@ export function CallsPage() {
               className="mt-1 text-[12.5px] leading-[1.55]"
               style={{ color: "#64748d", fontWeight: 500 }}
             >
-              선택한 통화의 기본 정보, 요약, 대화 내용, VOC와 후속조치 정보를 확인합니다.
+              선택한 통화의 기본 정보, 요약, 대화 내용, VOC와 후속조치 정보를
+              확인합니다.
             </DialogDescription>
           </DialogHeader>
 
@@ -789,7 +794,7 @@ export function CallsPage() {
                           <div className="space-y-1">
                             <div className="flex flex-wrap items-center gap-2">
                               <p
-                              className="no-text-break text-[11.5px]"
+                                className="no-text-break text-[11.5px]"
                                 style={{ color: "#64748d", fontWeight: 600 }}
                               >
                                 {getSpeakerLabel(msg.speaker)}

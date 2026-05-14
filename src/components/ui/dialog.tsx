@@ -6,6 +6,9 @@ import { XIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
+export const LARGE_DIALOG_CONTENT_CLASSNAME =
+  'w-[98vw] max-w-[1400px] h-[90vh] overflow-y-auto sm:!max-w-[1400px]'
+
 function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {

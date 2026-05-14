@@ -34,6 +34,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  LARGE_DIALOG_CONTENT_CLASSNAME,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
@@ -564,8 +565,7 @@ function PageDetailPanel({
           <div className="space-y-3">
             {page.rawChunks.map((rawChunk, index) => {
               const isEditing = editingChunkId === rawChunk.id;
-              const isExpanded =
-                expandedChunkIds.has(rawChunk.id) || isEditing;
+              const isExpanded = expandedChunkIds.has(rawChunk.id) || isEditing;
               const chunkView = buildChunkView(rawChunk, index);
               const currentText =
                 editingChunkText[rawChunk.id] ?? rawChunk.content;
@@ -1454,9 +1454,9 @@ export function KnowledgePage() {
           if (!open) resetSheetState(true);
         }}
       >
-        <DialogContent
-          key={selectedDocumentId ?? "document-detail"}
-          className="w-[95vw] max-w-5xl max-h-[80vh] overflow-y-auto px-0 sm:!max-w-5xl"
+      <DialogContent
+        key={selectedDocumentId ?? "document-detail"}
+          className={`${LARGE_DIALOG_CONTENT_CLASSNAME} px-0`}
           style={{
             backgroundColor: "#ffffff",
             fontFamily: "var(--hds-font-body)",
@@ -1470,7 +1470,7 @@ export function KnowledgePage() {
                 style={{ borderBottom: "1px solid #e5edf5" }}
               >
                 <div className="min-w-0 pr-10">
-                                                      <DialogTitle
+                  <DialogTitle
                     className="text-soft-wrap text-[20px] tracking-[-0.014em]"
                     style={{
                       color: "#061b31",
@@ -1586,192 +1586,197 @@ export function KnowledgePage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                      {!isDocumentReady ? (
-                        <SheetStatusNotice
-                          status={selectedDocument.status}
-                          isActionDisabled={isChunkMutationPending}
-                          onReindex={() => void handleReindexDocument()}
-                        />
-                      ) : filteredPages.length === 0 ? (
+                    {!isDocumentReady ? (
+                      <SheetStatusNotice
+                        status={selectedDocument.status}
+                        isActionDisabled={isChunkMutationPending}
+                        onReindex={() => void handleReindexDocument()}
+                      />
+                    ) : filteredPages.length === 0 ? (
+                      <div
+                        className="flex min-h-[240px] flex-col items-center justify-center gap-2 rounded-[12px] p-6 text-center"
+                        style={{
+                          backgroundColor: "#ffffff",
+                          border: "1px solid #e5edf5",
+                        }}
+                      >
+                        <span
+                          className="flex h-10 w-10 items-center justify-center rounded-[8px]"
+                          style={{
+                            color: "#533afd",
+                            backgroundColor: "rgba(83,58,253,0.08)",
+                            border: "1px solid rgba(83,58,253,0.20)",
+                          }}
+                        >
+                          <Sparkles className="h-5 w-5" />
+                        </span>
+                        <p
+                          className="text-[14px]"
+                          style={{ color: "#061b31", fontWeight: 600 }}
+                        >
+                          {searchKeyword.trim()
+                            ? "검색 결과가 없습니다"
+                            : "정리된 페이지가 없습니다"}
+                        </p>
+                        <p
+                          className="text-[12.5px]"
+                          style={{ color: "#64748d", fontWeight: 500 }}
+                        >
+                          {searchKeyword.trim()
+                            ? "다른 검색어로 다시 찾아보세요."
+                            : "문서를 다시 처리한 뒤 페이지별 상담 지식이 표시됩니다."}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid min-w-0 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
                         <div
-                          className="flex min-h-[240px] flex-col items-center justify-center gap-2 rounded-[12px] p-6 text-center"
+                          className="overflow-hidden rounded-[12px]"
                           style={{
                             backgroundColor: "#ffffff",
                             border: "1px solid #e5edf5",
                           }}
                         >
-                          <span
-                            className="flex h-10 w-10 items-center justify-center rounded-[8px]"
-                            style={{
-                              color: "#533afd",
-                              backgroundColor: "rgba(83,58,253,0.08)",
-                              border: "1px solid rgba(83,58,253,0.20)",
-                            }}
-                          >
-                            <Sparkles className="h-5 w-5" />
-                          </span>
-                          <p
-                            className="text-[14px]"
-                            style={{ color: "#061b31", fontWeight: 600 }}
-                          >
-                            {searchKeyword.trim()
-                              ? "검색 결과가 없습니다"
-                              : "정리된 페이지가 없습니다"}
-                          </p>
-                          <p
-                            className="text-[12.5px]"
-                            style={{ color: "#64748d", fontWeight: 500 }}
-                          >
-                            {searchKeyword.trim()
-                              ? "다른 검색어로 다시 찾아보세요."
-                              : "문서를 다시 처리한 뒤 페이지별 상담 지식이 표시됩니다."}
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="grid min-w-0 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
                           <div
-                            className="overflow-hidden rounded-[12px]"
-                            style={{
-                              backgroundColor: "#ffffff",
-                              border: "1px solid #e5edf5",
-                            }}
+                            className="px-5 py-4"
+                            style={{ borderBottom: "1px solid #e5edf5" }}
                           >
-                            <div
-                              className="px-5 py-4"
-                              style={{ borderBottom: "1px solid #e5edf5" }}
+                            <h3
+                              className="text-[14px] tracking-[-0.008em]"
+                              style={{
+                                color: "#061b31",
+                                fontFamily: "var(--hds-font-display)",
+                                fontWeight: 700,
+                              }}
                             >
-                              <h3
-                                className="text-[14px] tracking-[-0.008em]"
-                                style={{
-                                  color: "#061b31",
-                                  fontFamily: "var(--hds-font-display)",
-                                  fontWeight: 700,
-                                }}
-                              >
-                                페이지 목록
-                              </h3>
-                              <p
-                                className="mt-0.5 text-[12px]"
-                                style={{ color: "#64748d", fontWeight: 500 }}
-                              >
-                                PDF 페이지 단위로 정리된 상담 지식입니다.
-                              </p>
-                            </div>
-                            <ScrollArea className="h-[560px]">
-                              <div className="space-y-1.5 p-3">
-                                {filteredPages.map((page) => {
-                                  const isActive =
-                                    selectedPage?.id === page.id;
-                                  return (
-                                    <button
-                                      key={page.id}
-                                      type="button"
-                                      onClick={() =>
-                                        setSelectedPageId(page.id)
-                                      }
-                                      className={cn(
-                                        "relative w-full min-w-0 rounded-[8px] p-3 text-left transition-colors",
-                                      )}
-                                      style={{
-                                        backgroundColor: isActive
-                                          ? "rgba(83,58,253,0.05)"
-                                          : "transparent",
-                                        border: isActive
-                                          ? "1px solid #d6d9fc"
-                                          : "1px solid transparent",
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        if (!isActive)
-                                          e.currentTarget.style.backgroundColor =
-                                            "#f6f9fc";
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        if (!isActive)
-                                          e.currentTarget.style.backgroundColor =
-                                            "transparent";
-                                      }}
-                                    >
-                                      {isActive ? (
-                                        <span
-                                          aria-hidden="true"
-                                          className="absolute left-0 top-2 bottom-2 w-[2px] rounded-r-[2px]"
-                                          style={{ backgroundColor: "#533afd" }}
-                                        />
-                                      ) : null}
-                                      <div className="flex min-w-0 items-center gap-2">
-                                        <span
-                                          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px]"
-                                          style={{
-                                            color: isActive ? "#533afd" : "#94a3b8",
-                                            backgroundColor: isActive
-                                              ? "rgba(83,58,253,0.10)"
-                                              : "#f6f9fc",
-                                            border: isActive
-                                              ? "1px solid rgba(83,58,253,0.20)"
-                                              : "1px solid #e5edf5",
-                                          }}
-                                        >
-                                          <FileText className="h-3 w-3" aria-hidden="true" />
-                                        </span>
-                                        <p
-                                          className="hds-tnum no-text-break text-[13px]"
-                                          style={{
-                                            color: isActive
-                                              ? "#533afd"
-                                              : "#061b31",
-                                            fontWeight: 600,
-                                          }}
-                                        >
-                                          {page.label}
-                                        </p>
-                                        <span
-                                          className="hds-tnum no-text-break text-[11.5px]"
-                                          style={{ color: "#94a3b8", fontWeight: 500 }}
-                                        >
-                                          · 항목 {page.chunkCount}개
-                                        </span>
-                                      </div>
-                                      {page.previewTitles.length > 0 ? (
-                                        <p
-                                          className="text-soft-wrap mt-1.5 line-clamp-2 text-[12px] leading-[1.55]"
-                                          style={{
-                                            color: "#64748d",
-                                            fontWeight: 500,
-                                          }}
-                                        >
-                                          {page.previewTitles.join(" · ")}
-                                        </p>
-                                      ) : null}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </ScrollArea>
+                              페이지 목록
+                            </h3>
+                            <p
+                              className="mt-0.5 text-[12px]"
+                              style={{ color: "#64748d", fontWeight: 500 }}
+                            >
+                              PDF 페이지 단위로 정리된 상담 지식입니다.
+                            </p>
                           </div>
-
-                          {selectedPage ? (
-                            <PageDetailPanel
-                              key={selectedPage.id}
-                              page={selectedPage}
-                              editingChunkId={editingChunkId}
-                              editingChunkText={editingChunkText}
-                              isSaving={isChunkMutationPending}
-                              savingChunkId={savingChunkId}
-                              onStartEditing={handleStartEditingChunk}
-                              onCancelEditing={handleCancelEditing}
-                              onChangeChunkText={handleChangeChunkText}
-                              onSaveChunk={(chunkId) =>
-                                void handleSaveChunk(chunkId)
-                              }
-                            />
-                          ) : (
-                            <EmptyShell height="h-[520px]">
-                              선택된 페이지가 없습니다.
-                            </EmptyShell>
-                          )}
+                          <ScrollArea className="h-[560px]">
+                            <div className="space-y-1.5 p-3">
+                              {filteredPages.map((page) => {
+                                const isActive = selectedPage?.id === page.id;
+                                return (
+                                  <button
+                                    key={page.id}
+                                    type="button"
+                                    onClick={() => setSelectedPageId(page.id)}
+                                    className={cn(
+                                      "relative w-full min-w-0 rounded-[8px] p-3 text-left transition-colors",
+                                    )}
+                                    style={{
+                                      backgroundColor: isActive
+                                        ? "rgba(83,58,253,0.05)"
+                                        : "transparent",
+                                      border: isActive
+                                        ? "1px solid #d6d9fc"
+                                        : "1px solid transparent",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (!isActive)
+                                        e.currentTarget.style.backgroundColor =
+                                          "#f6f9fc";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (!isActive)
+                                        e.currentTarget.style.backgroundColor =
+                                          "transparent";
+                                    }}
+                                  >
+                                    {isActive ? (
+                                      <span
+                                        aria-hidden="true"
+                                        className="absolute left-0 top-2 bottom-2 w-[2px] rounded-r-[2px]"
+                                        style={{ backgroundColor: "#533afd" }}
+                                      />
+                                    ) : null}
+                                    <div className="flex min-w-0 items-center gap-2">
+                                      <span
+                                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px]"
+                                        style={{
+                                          color: isActive
+                                            ? "#533afd"
+                                            : "#94a3b8",
+                                          backgroundColor: isActive
+                                            ? "rgba(83,58,253,0.10)"
+                                            : "#f6f9fc",
+                                          border: isActive
+                                            ? "1px solid rgba(83,58,253,0.20)"
+                                            : "1px solid #e5edf5",
+                                        }}
+                                      >
+                                        <FileText
+                                          className="h-3 w-3"
+                                          aria-hidden="true"
+                                        />
+                                      </span>
+                                      <p
+                                        className="hds-tnum no-text-break text-[13px]"
+                                        style={{
+                                          color: isActive
+                                            ? "#533afd"
+                                            : "#061b31",
+                                          fontWeight: 600,
+                                        }}
+                                      >
+                                        {page.label}
+                                      </p>
+                                      <span
+                                        className="hds-tnum no-text-break text-[11.5px]"
+                                        style={{
+                                          color: "#94a3b8",
+                                          fontWeight: 500,
+                                        }}
+                                      >
+                                        · 항목 {page.chunkCount}개
+                                      </span>
+                                    </div>
+                                    {page.previewTitles.length > 0 ? (
+                                      <p
+                                        className="text-soft-wrap mt-1.5 line-clamp-2 text-[12px] leading-[1.55]"
+                                        style={{
+                                          color: "#64748d",
+                                          fontWeight: 500,
+                                        }}
+                                      >
+                                        {page.previewTitles.join(" · ")}
+                                      </p>
+                                    ) : null}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </ScrollArea>
                         </div>
-                      )}
-                    </div>
+
+                        {selectedPage ? (
+                          <PageDetailPanel
+                            key={selectedPage.id}
+                            page={selectedPage}
+                            editingChunkId={editingChunkId}
+                            editingChunkText={editingChunkText}
+                            isSaving={isChunkMutationPending}
+                            savingChunkId={savingChunkId}
+                            onStartEditing={handleStartEditingChunk}
+                            onCancelEditing={handleCancelEditing}
+                            onChangeChunkText={handleChangeChunkText}
+                            onSaveChunk={(chunkId) =>
+                              void handleSaveChunk(chunkId)
+                            }
+                          />
+                        ) : (
+                          <EmptyShell height="h-[520px]">
+                            선택된 페이지가 없습니다.
+                          </EmptyShell>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </>
